@@ -82,7 +82,8 @@ CHOICES=$(gum choose --no-limit \
     "🌐 [2] System Latency & Connection sysctl rules" \
     "📂 [3] Linux File Watcher expansions (inotify)" \
     "🛡️  [4] Snapper BTRFS recovery snapshots & pacman hooks" \
-    "🛠️  [5] Developer Stack (Starship, tmux, mise shims)")
+    "🛠️  [5] Developer Core (tmux panel splits & mise environment shims)" \
+    "🚀 [6] Starship Visual Prompt (highly customizable cross-shell prompt)")
 
 if [ -z "$CHOICES" ]; then
     log_warn "No modules were selected. Exiting installer."
@@ -137,7 +138,11 @@ if echo "$CHOICES" | grep -q "\[4\]"; then
 fi
 
 if echo "$CHOICES" | grep -q "\[5\]"; then
-    run_module "dev-tools.sh" "Developer Core Stack (starship/tmux/mise)"
+    run_module "dev-tools.sh" "Developer Core Stack (tmux/mise shims)"
+fi
+
+if echo "$CHOICES" | grep -q "\[6\]"; then
+    run_module "starship.sh" "Starship Shell Prompt"
 fi
 
 echo -e "------------------------------------------------------------"

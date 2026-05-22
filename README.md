@@ -30,9 +30,10 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Enables the `grub-btrfs` service, allowing you to **boot directly into older snapshots** straight from the GRUB boot menu if an update ever breaks your user session.
 * **🛠️ Module 5: Developer Core Stack**
   * Verifies or bootstraps `yay` AUR helper integration.
-  * Deploys the beautiful [Starship](https://starship.rs/) cross-shell prompt config on Fish and Bash.
   * Installs and configures [tmux](https://github.com/tmux/tmux) with mouse support, intuitive panel splitting bindings, and ultra-fast escape-latency.
   * Registers environment shims for [mise](https://mise.jdx.dev/) runtime manager dynamically inside `.bashrc` and `config.fish`.
+* **🚀 Module 6: Starship Shell Prompt (Optional)**
+  * Deploys the beautiful, fast, and highly customizable [Starship](https://starship.rs/) cross-shell prompt layout on Fish and Bash.
 
 ---
 
@@ -70,7 +71,8 @@ cachy-gnome-tweaks/
     ├── network.sh              # Module 2: Sysctl network & NM iwd backend selector
     ├── file-watchers.sh        # Module 3: System inotify limits expansion
     ├── snapper.sh              # Module 4: Snapper configuration & grub-btrfs daemon hook
-    └── dev-tools.sh            # Module 5: User configurations, yay bootstrapper & mise shell configs
+    ├── dev-tools.sh            # Module 5: User configurations, yay bootstrapper & mise shell configs
+    └── starship.sh             # Module 6: Starship prompt setup & activation shims
 ```
 
 ---
@@ -86,7 +88,7 @@ cat /tmp/cachy-gnome-tweaks.log
 ### 💡 Post-Installation Steps
 
 1. **Session reload**: To activate environment variables, log out of GNOME and log back in, or run a full reboot.
-2. **Developer Shells**: Start a new terminal window or run `source ~/.bashrc` (or `source ~/.config/fish/config.fish`) to load the Starship prompt and activate your new `mise` shims.
+2. **Developer Shells**: Start a new terminal window or run `source ~/.bashrc` (or `source ~/.config/fish/config.fish`) to load your new configurations and active shims.
 
 ---
 

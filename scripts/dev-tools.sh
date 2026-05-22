@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 #   cachy-gnome-tweaks - scripts/dev-tools.sh
-#   Purpose: Install yay, Starship prompt, tmux, and mise shims safely
+#   Purpose: Install yay, tmux, and mise runtime activation shims safely
 # ==============================================================================
 set -euo pipefail
 
@@ -30,41 +30,22 @@ else
     TARGET_HOME="/home/$TARGET_USER"
 fi
 
-log_info "Initiating Developer Core Stack setup for user '${TARGET_USER}'..."
+log_info "Initiating Developer Stack setup for user '${TARGET_USER}'..."
 
 # 1. Install packages via pacman (highly optimized Arch packages)
-log_info "Installing starship, tmux, and mise via pacman..."
-pacman -S --needed --noconfirm starship tmux mise || log_warn "Could not install all developer packages through pacman immediately."
+log_info "Installing tmux and mise via pacman..."
+pacman -S --needed --noconfirm tmux mise || log_warn "Could not install all developer packages through pacman immediately."
 
 # 2. Check and bootstrap yay helper if missing
 log_info "Verifying AUR helper (yay)..."
 if ! command -v yay &>/dev/null; then
     log_info "yay helper not found in PATH. Attempting to install it..."
-    pacman -S --needed --noconfirm yay || log_warn "Could not bootstrap 'yay' using pacman; continuing since CachyOS usually ships with it."
+    pacman -S --needed --noconfirm yay || log_warn "Could not bootstrap 'yay' using pacman."
 else
     log_success "yay is present."
 fi
 
-# 3. Configure Starship
-log_info "Configuring Starship theme prompt..."
-CONFIG_DIR="${TARGET_HOME}/.config"
-mkdir -p "$CONFIG_DIR"
-chown "${TARGET_USER}:${TARGET_USER}" "$CONFIG_DIR"
-
-STARSHIP_SRC="/home/athena/Github/cachy-gnome-tweaks/config/starship.toml"
-STARSHIP_DST="${CONFIG_DIR}/starship.toml"
-
-if [ -f "$STARSHIP_SRC" ]; then
-    cp "$STARSHIP_SRC" "$STARSHIP_DST"
-    chown "${TARGET_USER}:${TARGET_USER}" "$STARSHIP_DST"
-    log_success "Copied elegant Starship layout to ${STARSHIP_DST}"
-else
-    log_warn "Source starship.toml not found at ${STARSHIP_SRC}. Creating a minimal default..."
-    echo 'format = "$all"' > "$STARSHIP_DST"
-    chown "${TARGET_USER}:${TARGET_USER}" "$STARSHIP_DST"
-fi
-
-# 4. Configure tmux
+# 3. Configure tmux
 log_info "Configuring tmux workspace layout..."
 TMUX_SRC="/home/athena/Github/cachy-gnome-tweaks/config/tmux.conf"
 TMUX_DST="${TARGET_HOME}/.tmux.conf"
@@ -77,8 +58,9 @@ else
     log_warn "Source tmux.conf not found at ${TMUX_SRC}."
 fi
 
-# 5. Inject shell activation shims
-log_info "Registering shell activation scripts for Starship and mise..."
+# 4. Inject shell activation shims for mise
+log_info "Registering shell activation scripts for mise..."
+CONFIG_DIR="${TARGET_HOME}/.config"
 
 # --- BASH CONFIGURATION ---
 BASHRC="${TARGET_HOME}/.bashrc"
@@ -88,7 +70,6 @@ if [ -f "$BASHRC" ]; then
     # Remove older hooks or blocks safely
     sed -i '/# <<< cachy-gnome-tweaks START <<<$/,/# >>> cachy-gnome-tweaks END >>>$/d' "$BASHRC"
     sed -i '/# cachy-gnome-tweaks/d' "$BASHRC"
-    sed -i '/starship init bash/d' "$BASHRC"
     sed -i '/mise activate bash/d' "$BASHRC"
     
     # Append fresh shims in a clean block
@@ -96,9 +77,6 @@ if [ -f "$BASHRC" ]; then
 
 # <<< cachy-gnome-tweaks START <<<
 # cachy-gnome-tweaks: Developer environment shims
-if command -v starship &>/dev/null; then
-    eval "$(starship init bash)"
-fi
 if command -v mise &>/dev/null; then
     eval "$(mise activate bash)"
 fi
@@ -106,7 +84,7 @@ fi
 EOF
     log_success "Bash configurations injected."
 else
-    log_info "No .bashrc file detected for '${TARGET_USER}'. Skipping Bash setup."
+    log_info "No .bashrc file detected for '${TARGET_USER}'."
 fi
 
 # --- FISH CONFIGURATION ---
@@ -125,7 +103,6 @@ if [ -d "${CONFIG_DIR}/fish" ] || [ -f "$FISH_CONF" ]; then
     # Clean previous blocks safely
     sed -i '/# <<< cachy-gnome-tweaks START <<<$/,/# >>> cachy-gnome-tweaks END >>>$/d' "$FISH_CONF"
     sed -i '/# cachy-gnome-tweaks/d' "$FISH_CONF"
-    sed -i '/starship init fish/d' "$FISH_CONF"
     sed -i '/mise activate fish/d' "$FISH_CONF"
     
     # Append fresh fish shims in a clean block
@@ -134,9 +111,6 @@ if [ -d "${CONFIG_DIR}/fish" ] || [ -f "$FISH_CONF" ]; then
 # <<< cachy-gnome-tweaks START <<<
 # cachy-gnome-tweaks: Developer environment shims
 if status is-interactive
-    if type -q starship
-        starship init fish | source
-    end
     if type -q mise
         mise activate fish | source
     end
@@ -145,8 +119,7 @@ end
 EOF
     log_success "Fish configurations injected."
 else
-    log_info "Fish shell layout directory not active. Skipping Fish setup."
+    log_info "Fish shell layout directory not active."
 fi
 
-log_success "Developer core stack applied successfully!"
-echo -e "\n${YELLOW}💡 Note: Open a new terminal window or run 'source ~/.bashrc' (or 'source ~/.config/fish/config.fish') to load your new environment!${RESET}\n"
+log_success "Developer stack applied successfully!"

@@ -34,6 +34,10 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Registers environment shims for [mise](https://mise.jdx.dev/) runtime manager dynamically inside `.bashrc` and `config.fish`.
 * **🚀 Module 6: Starship Shell Prompt (Optional)**
   * Deploys the beautiful, fast, and highly customizable [Starship](https://starship.rs/) cross-shell prompt layout on Fish and Bash.
+* **📦 Module 7: Premium Apps Bundle (Optional)**
+  * Installs **Vivaldi Browser** along with proprietary media codecs, and automatically sets up hardware accelerated video decoding (VA-API) in Vivaldi configuration flags for seamless YouTube/video rendering.
+  * Deploys the high-fidelity **Audio Stack & Bluetooth Codecs** (LDAC, aptX) alongside `pavucontrol` (volume mixer GUI) for superior sound stability and control.
+  * Installs the open-source **LibreOffice** suite with Spanish spelling dictionary support (`hunspell-es`).
 
 ---
 
@@ -72,7 +76,8 @@ cachy-gnome-tweaks/
     ├── file-watchers.sh        # Module 3: System inotify limits expansion
     ├── snapper.sh              # Module 4: Snapper configuration & grub-btrfs daemon hook
     ├── dev-tools.sh            # Module 5: User configurations, yay bootstrapper & mise shell configs
-    └── starship.sh             # Module 6: Starship prompt setup & activation shims
+    ├── starship.sh             # Module 6: Starship prompt setup & activation shims
+    └── apps-bundle.sh          # Module 7: Vivaldi, LibreOffice, Audio stack & BT codecs
 ```
 
 ---

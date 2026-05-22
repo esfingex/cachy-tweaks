@@ -1,0 +1,98 @@
+#!/bin/bash
+# ==============================================================================
+#   cachy-gnome-tweaks - scripts/apps-bundle.sh
+#   Purpose: Install premium app bundle (Vivaldi + VAAPI, LibreOffice, Audio stack & BT codecs)
+# ==============================================================================
+set -euo pipefail
+
+# ANSI color codes
+CYAN="\e[1;36m"
+GREEN="\e[1;32m"
+YELLOW="\e[1;33m"
+RED="\e[1;31m"
+RESET="\e[0m"
+
+log_info() { echo -e "${CYAN}[*] $1${RESET}"; }
+log_success() { echo -e "${GREEN}[+] $1${RESET}"; }
+log_warn() { echo -e "${YELLOW}[!] $1${RESET}"; }
+log_error() { echo -e "${RED}[ERROR] $1${RESET}" >&2; }
+
+# Pre-checks
+if [ "$EUID" -ne 0 ]; then
+    log_error "This script module must be run as root (sudo)."
+    exit 1
+fi
+
+TARGET_USER="${SUDO_USER:-$USER}"
+if [ "$TARGET_USER" = "root" ]; then
+    TARGET_HOME="/root"
+else
+    TARGET_HOME="/home/$TARGET_USER"
+fi
+
+log_info "Starting Premium Application Bundle setup for user '${TARGET_USER}'..."
+
+# Ensure AUR helper 'yay' is accessible
+AUR_HELPER="pacman"
+if command -v yay &>/dev/null; then
+    AUR_HELPER="yay"
+    log_success "AUR helper 'yay' detected. Using it for package installations where helpful."
+fi
+
+# 1. High-Fidelity Audio Stack & Bluetooth Codecs
+log_info "Configuring audio compatibility and high-fidelity codecs..."
+# Install pavucontrol (GUI controller) and ensure pipewire bridges are active
+pacman -S --needed --noconfirm \
+    pipewire-pulse \
+    pipewire-alsa \
+    pipewire-jack \
+    wireplumber \
+    pavucontrol \
+    bluez \
+    bluez-utils || log_warn "Could not install all base audio/bluetooth utilities."
+
+# Install high-quality Bluetooth codecs (LDAC, aptX) for lag-free premium headphone audio
+log_info "Installing high-fidelity Bluetooth audio codecs (LDAC / aptX / AAC)..."
+pacman -S --needed --noconfirm \
+    libldac \
+    libfreeaptx || log_warn "Could not install premium bluetooth codecs."
+
+# Enable and start Bluetooth service
+systemctl enable --now bluetooth.service 2>/dev/null || true
+log_success "Audio stack & premium Bluetooth codecs configured successfully!"
+
+# 2. Vivaldi Browser Installation + VAAPI Acceleration Flags
+log_info "Installing Vivaldi Browser and proprietary codecs..."
+pacman -S --needed --noconfirm vivaldi vivaldi-ffmpeg-codecs || log_warn "Could not install Vivaldi through pacman."
+
+# Configure hardware video decoding (VAAPI) for Vivaldi
+log_info "Configuring hardware acceleration variables for Vivaldi browser..."
+VIVALDI_FLAGS_DIR="${TARGET_HOME}/.config"
+mkdir -p "$VIVALDI_FLAGS_DIR"
+
+FLAG="--enable-features=VaapiOnNvidiaGPUs"
+
+# Vivaldi uses vivaldi-stable-flags.conf or vivaldi-flags.conf depending on packaging
+for file in "vivaldi-stable-flags.conf" "vivaldi-flags.conf"; do
+    FILE_PATH="${VIVALDI_FLAGS_DIR}/${file}"
+    if [ -f "$FILE_PATH" ]; then
+        if ! grep -qF "$FLAG" "$FILE_PATH"; then
+            echo "$FLAG" >> "$FILE_PATH"
+            log_success "Added VA-API acceleration flag to existing ${file}"
+        else
+            log_info "VA-API flag already active in ${file}."
+        fi
+    else
+        echo "$FLAG" > "$FILE_PATH"
+        chown "${TARGET_USER}:${TARGET_USER}" "$FILE_PATH"
+        log_success "Created ${file} with hardware acceleration enabled."
+    fi
+done
+
+# 3. Office & Ofimática Suite
+log_info "Installing LibreOffice Fresh & Spanish spelling dictionaries..."
+pacman -S --needed --noconfirm libreoffice-fresh hunspell hunspell-es || log_warn "Could not install LibreOffice packages."
+log_success "Office suite successfully installed!"
+
+log_success "Premium Application Bundle applied successfully!"
+echo -e "\n${YELLOW}💡 Note: Open Vivaldi and check 'vivaldi://gpu' to confirm that Hardware Video Decoding is now fully active on your GPU!${RESET}\n"

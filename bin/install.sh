@@ -112,12 +112,15 @@ run_module() {
     chmod +x "$script_path"
     
     log_info "Starting: ${title}"
+    echo -e "${CYAN}------------------------------------------------------------${RESET}"
     
-    # Use gum spin to make the CLI experience beautiful
-    if gum spin --spinner dot --title "Applying module details..." -- sudo -E bash "$script_path" >> "$LOG_FILE" 2>&1; then
+    # Run the module script directly, streaming output to terminal and appending to log file
+    if sudo -E bash "$script_path" 2>&1 | tee -a "$LOG_FILE"; then
+        echo -e "${CYAN}------------------------------------------------------------${RESET}"
         log_success "Successfully completed: ${title}"
         echo ""
     else
+        echo -e "${CYAN}------------------------------------------------------------${RESET}"
         log_error "Failed module: ${title}."
         log_warn "Check the details in: ${LOG_FILE}"
         echo ""

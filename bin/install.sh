@@ -46,6 +46,7 @@ echo -e "  └──────────────────────
 echo -e "${RESET}"
 
 log_info "Initializing pre-flight installer checks..."
+log_info "Detected project directory: ${PROJECT_DIR}"
 
 # Check if pacman is available (Arch-based system validation)
 if ! command -v pacman &>/dev/null; then
@@ -106,6 +107,7 @@ run_module() {
     
     if [ ! -f "$script_path" ]; then
         log_error "Module script not found: ${script_name}."
+        log_error "Attempted path: ${script_path}"
         return 1
     fi
     

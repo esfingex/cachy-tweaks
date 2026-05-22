@@ -33,7 +33,7 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Installs and configures [tmux](https://github.com/tmux/tmux) with mouse support, intuitive panel splitting bindings, and ultra-fast escape-latency.
   * Registers environment shims for [mise](https://mise.jdx.dev/) runtime manager dynamically inside `.bashrc` and `config.fish`.
 * **📦 Module 6: Premium Apps Bundle (Optional)**
-  * Installs **Vivaldi Browser** along with proprietary media codecs, and automatically sets up hardware accelerated video decoding (VA-API) in Vivaldi configuration flags for seamless YouTube/video rendering.
+  * Installs **Vivaldi Browser** along with proprietary media codecs, GNOME Shell browser connector integration (`gnome-browser-connector`), and automatically sets up hardware accelerated video decoding (VA-API) in Vivaldi configuration flags for seamless YouTube/video rendering.
   * Deploys the high-fidelity **Audio Stack & Bluetooth Codecs** (LDAC, aptX) alongside `pavucontrol` (volume mixer GUI) for superior sound stability and control.
   * Installs essential **Compression & Archive Utilities** (`zip`, `unzip`, `unrar`, `p7zip`) to enable seamless extraction of `.zip`, `.rar`, and `.7z` files directly inside GNOME's default file manager.
 * **🤖 Module 7: AI Developer Tools (Optional)**

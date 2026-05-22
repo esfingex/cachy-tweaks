@@ -61,9 +61,9 @@ pacman -S --needed --noconfirm \
 systemctl enable --now bluetooth.service 2>/dev/null || true
 log_success "Audio stack & premium Bluetooth codecs configured successfully!"
 
-# 2. Vivaldi Browser Installation + VAAPI Acceleration Flags
-log_info "Installing Vivaldi Browser and proprietary codecs..."
-pacman -S --needed --noconfirm vivaldi vivaldi-ffmpeg-codecs || log_warn "Could not install Vivaldi through pacman."
+# 2. Vivaldi Browser & GNOME Extension Integration + VAAPI Flags
+log_info "Installing Vivaldi Browser, proprietary codecs, and GNOME browser connector..."
+pacman -S --needed --noconfirm vivaldi vivaldi-ffmpeg-codecs gnome-browser-connector || log_warn "Could not install Vivaldi and GNOME connector packages."
 
 # Configure hardware video decoding (VAAPI) for Vivaldi
 log_info "Configuring hardware acceleration variables for Vivaldi browser..."

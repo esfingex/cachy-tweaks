@@ -37,7 +37,8 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
 * **📦 Module 7: Premium Apps Bundle (Optional)**
   * Installs **Vivaldi Browser** along with proprietary media codecs, and automatically sets up hardware accelerated video decoding (VA-API) in Vivaldi configuration flags for seamless YouTube/video rendering.
   * Deploys the high-fidelity **Audio Stack & Bluetooth Codecs** (LDAC, aptX) alongside `pavucontrol` (volume mixer GUI) for superior sound stability and control.
-  * Installs the open-source **LibreOffice** suite with Spanish spelling dictionary support (`hunspell-es`).
+  * Installs the modern **OnlyOffice** suite (with high MS Office file compatibility) and Spanish spelling dictionary support (`hunspell-es`).
+  * Installs essential **Compression & Archive Utilities** (`zip`, `unzip`, `unrar`, `p7zip`) to enable seamless extraction of `.zip`, `.rar`, and `.7z` files directly inside GNOME's default file manager.
 
 ---
 
@@ -77,7 +78,7 @@ cachy-gnome-tweaks/
     ├── snapper.sh              # Module 4: Snapper configuration & grub-btrfs daemon hook
     ├── dev-tools.sh            # Module 5: User configurations, yay bootstrapper & mise shell configs
     ├── starship.sh             # Module 6: Starship prompt setup & activation shims
-    └── apps-bundle.sh          # Module 7: Vivaldi, LibreOffice, Audio stack & BT codecs
+    └── apps-bundle.sh          # Module 7: Vivaldi, OnlyOffice, Audio stack & BT codecs
 ```
 
 ---

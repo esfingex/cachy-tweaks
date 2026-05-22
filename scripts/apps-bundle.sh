@@ -90,9 +90,23 @@ for file in "vivaldi-stable-flags.conf" "vivaldi-flags.conf"; do
 done
 
 # 3. Office & Ofimática Suite
-log_info "Installing LibreOffice Fresh & Spanish spelling dictionaries..."
-pacman -S --needed --noconfirm libreoffice-fresh hunspell hunspell-es || log_warn "Could not install LibreOffice packages."
+log_info "Installing OnlyOffice & Spanish spelling dictionaries..."
+if pacman -Si onlyoffice-bin &>/dev/null; then
+    pacman -S --needed --noconfirm onlyoffice-bin hunspell hunspell-es || log_warn "Could not install OnlyOffice packages."
+elif command -v yay &>/dev/null; then
+    log_info "onlyoffice-bin not found in pacman repos. Attempting install via AUR (yay)..."
+    # Run yay as target user since yay cannot run as root
+    sudo -u "$TARGET_USER" yay -S --needed --noconfirm onlyoffice-bin || log_warn "Could not install onlyoffice-bin via AUR."
+    pacman -S --needed --noconfirm hunspell hunspell-es || true
+else
+    log_warn "Could not find onlyoffice-bin in repositories and 'yay' is not active."
+fi
 log_success "Office suite successfully installed!"
+
+# 4. Compression & Archive Utilities (zip, unzip, unrar, p7zip)
+log_info "Installing compression and archive utilities (zip, unzip, unrar, p7zip)..."
+pacman -S --needed --noconfirm zip unzip unrar p7zip || log_warn "Could not install all archive utilities."
+log_success "Compression utilities successfully configured!"
 
 log_success "Premium Application Bundle applied successfully!"
 echo -e "\n${YELLOW}💡 Note: Open Vivaldi and check 'vivaldi://gpu' to confirm that Hardware Video Decoding is now fully active on your GPU!${RESET}\n"

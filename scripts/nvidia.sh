@@ -46,6 +46,10 @@ inject_env() {
         cp "$ENV_FILE" "${ENV_FILE}.backup-tweaks"
         backup_created=true
         log_info "Created backup of ${ENV_FILE} at ${ENV_FILE}.backup-tweaks"
+        # Ensure target file has a proper trailing newline to avoid append corruption
+        if [ -f "$ENV_FILE" ] && [ -n "$(tail -c 1 "$ENV_FILE" 2>/dev/null)" ]; then
+            echo "" >> "$ENV_FILE"
+        fi
     fi
 
     if grep -q "^${key}=" "$ENV_FILE"; then

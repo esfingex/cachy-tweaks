@@ -92,16 +92,25 @@ log_info "Enabling grub-btrfs monitoring daemon (automatically updates grub menu
 systemctl enable --now grub-btrfsd.service 2>/dev/null || true
 log_success "grub-btrfs daemon successfully active."
 
-# 7. Update GRUB configuration to populate snapshot entries
-log_info "Rebuilding GRUB menu to register snapshots..."
-if command -v grub-mkconfig &>/dev/null; then
+# 7. Update bootloader configurations to populate snapshot entries
+if [ -f "/boot/limine.conf" ] || command -v limine &>/dev/null; then
+    log_info "Limine bootloader detected. Setting up snapshot boot entries..."
+    pacman -S --needed --noconfirm limine-snapper-sync || log_warn "Could not install limine-snapper-sync package."
+    if command -v limine-snapper-sync &>/dev/null; then
+        limine-snapper-sync || log_warn "Could not execute limine-snapper-sync immediately."
+        log_success "Limine snapshot boot entries registered successfully."
+    fi
+elif command -v grub-mkconfig &>/dev/null; then
+    log_info "Rebuilding GRUB menu to register snapshots..."
     grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 || log_warn "Could not rebuild GRUB menu immediately."
     log_success "GRUB menu updated successfully."
 elif command -v update-grub &>/dev/null; then
+    log_info "Rebuilding GRUB menu to register snapshots..."
     update-grub >/dev/null 2>&1 || log_warn "Could not rebuild GRUB menu."
     log_success "GRUB menu updated successfully."
 else
-    log_warn "Neither 'grub-mkconfig' nor 'update-grub' were found. If you use systemd-boot, snapper snapshots will be manageable via the snapper command-line."
+    log_warn "Neither 'grub' nor 'limine' bootloaders configurations were fully matched in typical paths."
+    log_info "If you use systemd-boot, snapper snapshots are manageable via 'snapper rollback' or Btrfs Assistant."
 fi
 
 log_success "Snapper & BTRFS protection module successfully configured!"

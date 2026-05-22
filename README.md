@@ -47,6 +47,7 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
     * **Google Chrome** browser.
     * **OnlyOffice** suite with Spanish spelling dictionary support (`hunspell-es`).
     * **Antigravity IDE Launcher**: Global command `antigravity` and a GNOME `.desktop` shortcut that launches VS Code hooked with a persistent workspace tmux terminal.
+    * **qBittorrent**: Lightweight, ad-free, open-source BitTorrent client.
 * **🖥️ Module 9: Virtualization Stack (Optional)**
   * Complete high-performance **KVM/QEMU** virtualization environment setup.
   * Installs `virt-manager` GUI, `dnsmasq`, bridge interfaces, and automatically registers the active user in the `libvirt` system group.
@@ -81,9 +82,9 @@ Each module can also be called directly as an independent installer script, bypa
 ### 🚀 Easyarch App Installer (`easyarch.sh`)
 Pass the names of the tools you want to install as CLI arguments:
 ```bash
-sudo ./scripts/easyarch.sh telegram winehq onlyoffice chrome github antigravity
+sudo ./scripts/easyarch.sh telegram winehq onlyoffice chrome github antigravity qbittorrent
 ```
-*Available argument options:* `telegram`, `wine`, `github`, `chrome`, `onlyoffice`, `antigravity`.
+*Available argument options:* `telegram`, `wine`, `github`, `chrome`, `onlyoffice`, `antigravity`, `qbittorrent`.
 
 ### 🤖 Gemini API CLI Helper (`gemini`)
 Ask queries directly from your shell to Gemini 1.5 Flash:
@@ -112,7 +113,7 @@ cachy-gnome-tweaks/
     ├── dev-tools.sh            # Module 5: User configurations, yay bootstrapper & mise shell configs
     ├── apps-bundle.sh          # Module 6: Vivaldi, Audio stack & BT codecs
     ├── ai-tools.sh             # Module 7: Claude Code & Gemini API terminal CLI
-    ├── easyarch.sh             # Module 8: Telegram, WineHQ, GitHub Desktop, Chrome, OnlyOffice, Antigravity
+    ├── easyarch.sh             # Module 8: Telegram, WineHQ, GitHub Desktop, Chrome, OnlyOffice, Antigravity, qBittorrent
     ├── kvm-qemu.sh             # Module 9: KVM/QEMU hypervisor & bridges setup
     └── docker-cuda.sh          # Module 10: Docker Engine & NVIDIA container toolkit hooks
 ```

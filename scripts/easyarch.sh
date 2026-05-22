@@ -2,7 +2,7 @@
 # ==============================================================================
 #   cachy-gnome-tweaks - scripts/easyarch.sh
 #   Purpose: Independent and interactive installers for your favorite tools:
-#            Telegram, WineHQ, GitHub Desktop, Chrome, OnlyOffice & Antigravity IDE
+#            Telegram, WineHQ, GitHub Desktop, Chrome, OnlyOffice, Antigravity IDE & qBittorrent
 # ==============================================================================
 set -euo pipefail
 
@@ -169,6 +169,12 @@ install_onlyoffice() {
     log_success "OnlyOffice suite successfully installed!"
 }
 
+install_qbittorrent() {
+    log_info "Installing qBittorrent client..."
+    pacman -S --needed --noconfirm qbittorrent
+    log_success "qBittorrent successfully installed!"
+}
+
 # --- PARSING RUN MODE ---
 APPS=()
 
@@ -182,6 +188,7 @@ if [ $# -gt 0 ]; then
             antigravity|ide) APPS+=("antigravity-ide") ;;
             chrome|google-chrome) APPS+=("chrome") ;;
             onlyoffice|office) APPS+=("onlyoffice") ;;
+            qbittorrent|torrent) APPS+=("qbittorrent") ;;
             *) log_warn "Ignoring unrecognized application argument: ${arg}" ;;
         esac
     done
@@ -200,7 +207,8 @@ else
         "💻 [3] GitHub Desktop client" \
         "🛸 [4] Antigravity IDE Premium Launcher" \
         "🌐 [5] Google Chrome Browser" \
-        "📦 [6] OnlyOffice Suite")
+        "📦 [6] OnlyOffice Suite" \
+        "📥 [7] qBittorrent Client")
         
     if [ -z "$CHOICES" ]; then
         log_warn "No applications were selected. Exiting easyarch."
@@ -213,6 +221,7 @@ else
     if echo "$CHOICES" | grep -q "\[4\]"; then APPS+=("antigravity-ide"); fi
     if echo "$CHOICES" | grep -q "\[5\]"; then APPS+=("chrome"); fi
     if echo "$CHOICES" | grep -q "\[6\]"; then APPS+=("onlyoffice"); fi
+    if echo "$CHOICES" | grep -q "\[7\]"; then APPS+=("qbittorrent"); fi
 fi
 
 # --- EXECUTION STAGE ---
@@ -226,6 +235,7 @@ for app in "${APPS[@]}"; do
         antigravity-ide) install_antigravity_ide ;;
         chrome) install_chrome ;;
         onlyoffice) install_onlyoffice ;;
+        qbittorrent) install_qbittorrent ;;
     esac
 done
 

@@ -156,7 +156,7 @@ cat << EOF > "$SHORTCUT_PATH"
 Name=Antigravity IDE
 Comment=High-Performance Agentic Workspace Terminal
 Exec=/opt/antigravity-ide/antigravity-ide %F
-Icon=utilities-terminal
+Icon=/opt/antigravity-ide/resources/app/resources/linux/code.png
 Terminal=false
 Type=Application
 Categories=Development;IDE;

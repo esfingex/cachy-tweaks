@@ -56,6 +56,9 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Interactively purges unused pre-installed applications like **Alacritty**, **GNOME Web (Epiphany)**, **GNOME Tour**, and other redundant utilities to keep your desktop system light and clean.
 * **⚡ Module 11: makepkg Native Compiler & RAM-disk Optimization (Optional)**
   * Optimizes the Arch Linux compilation system (`/etc/makepkg.conf`) so that any package built from source (like emulators or AUR packages) compiles in a high-speed RAM-disk (`/tmp/makepkg`), utilizes all CPU cores/threads dynamically (`-j$(nproc)`), and leverages native processor instruction sets (`-march=native -O3`).
+* **💻 Module 12: Laptop & Thermal Tuning (Optional)**
+  * Installs specialized utilities for ASUS laptops (`asusctl` and `supergfxctl`) to manage power profiles, fan curves, keyboard backlights, and GPU switching (Hybrid, Integrated-only, Dedicated-only) directly on Linux.
+  * Installs Intel's active thermal management daemon (`thermald`) to pro-actively regulate CPU energy/temperatures, preventing thermal throttling and stuttering under heavy load.
 
 ---
 
@@ -119,7 +122,8 @@ cachy-gnome-tweaks/
     ├── kvm-qemu.sh             # Module 8: KVM/QEMU hypervisor & bridges setup
     ├── docker-cuda.sh          # Module 9: Docker Engine & NVIDIA container toolkit hooks
     ├── debloat.sh              # Module 10: Interactive bloatware & unused apps remover
-    └── makepkg.sh              # Module 11: makepkg compiler & RAM-disk optimizations
+    ├── makepkg.sh              # Module 11: makepkg compiler & RAM-disk optimizations
+    └── laptop-tuning.sh        # Module 12: ASUS tools & Intel active thermald setup
 ```
 
 ---

@@ -93,5 +93,19 @@ else
     log_success "Created chromium-flags.conf with VA-API enabled."
 fi
 
+# Setup NVIDIA Persistent Suspend/Resume power management options for Wayland
+log_info "Configuring NVIDIA persistent Wayland suspension power management..."
+MODPROBE_FILE="/etc/modprobe.d/nvidia-power-management.conf"
+if [ ! -f "$MODPROBE_FILE" ] || ! grep -q "NVreg_PreserveVideoMemoryAllocations" "$MODPROBE_FILE"; then
+    echo "options nvidia NVreg_PreserveVideoMemoryAllocations=1" > "$MODPROBE_FILE"
+    log_success "Configured PreserveVideoMemoryAllocations=1 in ${MODPROBE_FILE}"
+else
+    log_info "NVIDIA video memory allocation preservation already active in ${MODPROBE_FILE}."
+fi
+
+# Enable required NVIDIA systemd suspend/hibernate/resume services
+log_info "Enabling systemd suspension services for NVIDIA..."
+systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service 2>/dev/null || log_warn "Could not enable NVIDIA systemd suspend/resume services."
+
 log_success "NVIDIA & Wayland acceleration module applied successfully!"
 echo -e "\n${YELLOW}💡 Note: Please restart your session (log out and log in) to apply environment changes.${RESET}\n"

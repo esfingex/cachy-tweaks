@@ -47,7 +47,7 @@ fi
 echo -e "${MAGENTA}"
 echo -e "  ┌────────────────────────────────────────────────────────┐"
 echo -e "  │                                                        │"
-echo -e "  │    🏎️   C A C H Y   G N O M E   T W E A K S   🏎️     │"
+echo -e "  │    🏎️   C A C H Y   G N O M E   T W E A K S   🏎️       │"
 echo -e "  │       Modular Performance & Dev Stack for CachyOS      │"
 echo -e "  │                                                        │"
 echo -e "  └────────────────────────────────────────────────────────┘"
@@ -102,7 +102,8 @@ else
         "🖥️ [8] Virtualization Stack (KVM, QEMU, virt-manager, virtual bridges)" \
         "🐋 [9] Docker Stack (Docker engine, Compose, NVIDIA CUDA container toolkit)" \
         "🧹 [10] Bloatware Remover (Uninstall unused apps like Alacritty, GNOME Web, etc.)" \
-        "⚡ [11] makepkg Native Compiler Optimization (RAM-disk build, multi-threaded CPU)")
+        "⚡ [11] makepkg Native Compiler Optimization (RAM-disk build, multi-threaded CPU)" \
+        "💻 [12] Laptop & Thermal Tuning (ASUS ROG/TUF tools & Intel thermald)")
 fi
 
 if [ -z "$CHOICES" ]; then
@@ -187,6 +188,10 @@ fi
 
 if echo "$CHOICES" | grep -q "\[11\]"; then
     run_module "makepkg.sh" "makepkg Compiler & RAM-disk Optimization"
+fi
+
+if echo "$CHOICES" | grep -q "\[12\]"; then
+    run_module "laptop-tuning.sh" "Laptop & Thermal Tuning"
 fi
 
 echo -e "------------------------------------------------------------"

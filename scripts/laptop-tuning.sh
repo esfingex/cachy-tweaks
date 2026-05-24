@@ -36,6 +36,8 @@ fi
 
 # 2. Configure and enable ASUS power & RGB daemon (asusd)
 log_info "Configuring and enabling ASUS hardware daemon (asusd)..."
+# Fix known systemd namespace bug by ensuring /etc/asusd exists
+mkdir -p /etc/asusd
 systemctl enable --now asusd.service 2>/dev/null || log_warn "Could not enable/start asusd.service."
 log_success "ASUS hardware daemon (asusd) is active."
 

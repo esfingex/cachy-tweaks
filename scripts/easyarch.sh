@@ -114,10 +114,10 @@ install_chrome() {
 install_onlyoffice() {
     log_info "Installing OnlyOffice suite..."
     if pacman -Si onlyoffice-bin &>/dev/null; then
-        pacman -S --needed --noconfirm onlyoffice-bin hunspell hunspell-es
+        pacman -S --needed --noconfirm onlyoffice-bin hunspell hunspell-es_any
     else
         run_yay "onlyoffice-bin"
-        pacman -S --needed --noconfirm hunspell hunspell-es || true
+        pacman -S --needed --noconfirm hunspell hunspell-es_any || true
     fi
     log_success "OnlyOffice suite successfully installed!"
 }

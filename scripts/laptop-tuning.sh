@@ -23,7 +23,14 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-log_info "Starting ASUS Laptop & Intel CPU Thermal optimization..."
+TARGET_USER="${SUDO_USER:-$USER}"
+if [ "$TARGET_USER" = "root" ]; then
+    TARGET_HOME="/root"
+else
+    TARGET_HOME="/home/$TARGET_USER"
+fi
+
+log_info "Starting ASUS Laptop & Intel CPU Thermal optimization for user '${TARGET_USER}'..."
 
 # 1. Install required packages (asusctl, supergfxctl, thermald)
 log_info "Installing ASUS control utilities and Intel thermal daemon..."

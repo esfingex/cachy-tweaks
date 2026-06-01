@@ -103,7 +103,8 @@ else
         "🐋 [9] Docker Stack (Docker engine, Compose, NVIDIA CUDA container toolkit)" \
         "🧹 [10] Bloatware Remover (Uninstall unused apps like Alacritty, GNOME Web, etc.)" \
         "⚡ [11] makepkg Native Compiler Optimization (RAM-disk build, multi-threaded CPU)" \
-        "💻 [12] Laptop & Thermal Tuning (ASUS ROG/TUF tools & Intel thermald)")
+        "💻 [12] Laptop & Thermal Tuning (ASUS ROG/TUF tools & Intel thermald)" \
+        "🛡️ [13] Hardened Security Standard (UFW Firewall, USBGuard, Sudo Lock, AppArmor)")
 fi
 
 if [ -z "$CHOICES" ]; then
@@ -192,6 +193,10 @@ fi
 
 if echo "$CHOICES" | grep -q "\[12\]"; then
     run_module "laptop-tuning.sh" "Laptop & Thermal Tuning"
+fi
+
+if echo "$CHOICES" | grep -q "\[13\]"; then
+    run_module "security.sh" "Hardened Security Standard"
 fi
 
 echo -e "------------------------------------------------------------"

@@ -25,20 +25,40 @@ fi
 
 log_info "Applying Network and Connection stability tweaks..."
 
-# 1. MTU Probing configuration for robust TCP connections & SSH stability
+# 1. Sysctl security hardening and connection stability tweaks
 SYSCTL_FILE="/etc/sysctl.d/99-cachy-gnome-tweaks.conf"
-log_info "Injecting TCP MTU probing sysctl rule into ${SYSCTL_FILE}..."
+log_info "Injecting TCP and Kernel hardening sysctl rules into ${SYSCTL_FILE}..."
 
 mkdir -p "$(dirname "$SYSCTL_FILE")"
 
-# Remove existing key if already there to avoid duplicates
-if [ -f "$SYSCTL_FILE" ]; then
-    sed -i '/net.ipv4.tcp_mtu_probing/d' "$SYSCTL_FILE"
-fi
+# Safe drop-in configuration rewriting
+cat << 'EOF' > "$SYSCTL_FILE"
+# 🏎️ cachy-gnome-tweaks - Kernel Hardening & Performance sysctl rules
 
-echo "net.ipv4.tcp_mtu_probing=1" >> "$SYSCTL_FILE"
+# TCP MTU Probing (solves high-latency drops & SSH disconnects)
+net.ipv4.tcp_mtu_probing=1
+
+# Disable SUID core dumps to prevent memory data leaks from crashed apps
+fs.suid_dumpable=0
+
+# Protect Regular and FIFO files against symlink attacks
+fs.protected_fifos=2
+fs.protected_regular=2
+
+# Restrict unprivileged BPF calls to mitigate kernel exploit vectors
+kernel.unprivileged_bpf_disabled=1
+net.core.bpf_jit_harden=2
+
+# Mitigate Man-in-the-Middle redirect attacks and enable network log warnings
+net.ipv4.conf.all.send_redirects=0
+net.ipv4.conf.default.send_redirects=0
+net.ipv4.conf.all.log_martians=1
+net.ipv4.conf.default.log_martians=1
+EOF
+
 sysctl --system >/dev/null 2>&1 || log_warn "Could not hot-reload sysctl configurations immediately; they will apply on next boot."
-log_success "TCP MTU probing enabled successfully."
+log_success "Kernel security sysctl parameters injected and applied successfully."
+
 
 # 2. Prevent systemd-networkd-wait-online from stalling boot
 log_info "Optimizing systemd network startup timeouts..."

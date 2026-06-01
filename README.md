@@ -59,6 +59,21 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
 * **💻 Module 12: Laptop & Thermal Tuning (Optional)**
   * Installs specialized utilities for ASUS laptops (`asusctl` and `supergfxctl`) to manage power profiles, fan curves, keyboard backlights, and GPU switching (Hybrid, Integrated-only, Dedicated-only) directly on Linux.
   * Installs Intel's active thermal management daemon (`thermald`) to pro-actively regulate CPU energy/temperatures, preventing thermal throttling and stuttering under heavy load.
+* **🛡️ Module 13: Hardened Security Standard (Optional)**
+  * Installs and configures **UFW Firewall** with strict baseline rules (deny incoming, allow outgoing) optimized for gaming.
+  * Hardens authentication by reducing the **sudo timeout** to zero via a secure `/etc/sudoers.d/99-cachy-gnome-tweaks` drop-in.
+  * Protects ports against hardware injection/Rubber Ducky attacks using **USBGuard** with dynamic device policy matching.
+  * Activates system **AppArmor** protections and maps automatic kernel boot parameters in GRUB.
+  * Bootstraps **Lynis** for automated CLI-driven standard system security auditing.
+  * Installs and configures **Safing Portmaster** via AUR using your helper `yay`, enabling per-application connection monitoring, trackers blocking, and DNS-over-HTTPS (DoH).
+  * Installs **ClamAV** (Linux industry standard open-source antivirus engine) with the `freshclam` auto-updater daemon active in the background for daily signature syncs with zero gaming/system performance overhead.
+  * Installs **Rootkit Hunter (rkhunter)** to scan your kernel, properties, and startup routines for backdoors, rootkits, and local exploits.
+  * Deploys an **Automated Weekly Scheduler (GNOME)**: Creates a background daemon checker that runs on login. If more than 7 days have passed since your last scan, it displays a premium GNOME graphical prompt (`zenity`) asking to run a complete, prioritized malware and rootkit audit in a beautiful dedicated console window.
+  * Installs **Firejail & Firetools (GUI)**: Lightweight, native Linux kernel namespace sandbox. Integrates with GNOME automatically to run standard applications (browsers, Discord, Spotify) isolated in memory, and provides a beautiful dashboard to visually audit, customize, or disable sandbox policies.
+
+
+
+
 
 ---
 
@@ -123,7 +138,8 @@ cachy-gnome-tweaks/
     ├── docker-cuda.sh          # Module 9: Docker Engine & NVIDIA container toolkit hooks
     ├── debloat.sh              # Module 10: Interactive bloatware & unused apps remover
     ├── makepkg.sh              # Module 11: makepkg compiler & RAM-disk optimizations
-    └── laptop-tuning.sh        # Module 12: ASUS tools & Intel active thermald setup
+    ├── laptop-tuning.sh        # Module 12: ASUS tools & Intel active thermald setup
+    └── security.sh             # Module 13: Hardened security standard baseline (UFW, sudo, USBGuard, AppArmor)
 ```
 
 ---

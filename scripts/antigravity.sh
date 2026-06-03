@@ -166,5 +166,11 @@ EOF
 chown "${TARGET_USER}:${TARGET_USER}" "$SHORTCUT_PATH"
 chmod +x "$SHORTCUT_PATH"
 
+# 5. Create a system-wide update command symlink
+UPDATE_LINK_PATH="/usr/local/bin/antigravity-update"
+log_info "Creating global update command symlink at ${UPDATE_LINK_PATH}..."
+ln -sf "$(readlink -f "${BASH_SOURCE[0]}")" "$UPDATE_LINK_PATH"
+chmod +x "$UPDATE_LINK_PATH"
+
 log_success "Antigravity IDE Launcher & workspace integration successfully configured!"
-echo -e "${YELLOW}💡 Note: You can now type 'antigravity' in terminal or launch 'Antigravity IDE' directly from your GNOME Applications Overview!${RESET}"
+echo -e "${YELLOW}💡 Note: You can now type 'antigravity' in terminal, launch 'Antigravity IDE' from GNOME, or run 'sudo antigravity-update' to fetch upgrades!${RESET}"

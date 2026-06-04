@@ -57,7 +57,8 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
 * **⚡ Module 11: makepkg Native Compiler & RAM-disk Optimization (Optional)**
   * Optimizes the Arch Linux compilation system (`/etc/makepkg.conf`) so that any package built from source (like emulators or AUR packages) compiles in a high-speed RAM-disk (`/tmp/makepkg`), utilizes all CPU cores/threads dynamically (`-j$(nproc)`), and leverages native processor instruction sets (`-march=native -O3`).
 * **💻 Module 12: Laptop & Thermal Tuning (Optional)**
-  * Installs specialized utilities for ASUS laptops (`asusctl` and `supergfxctl`) to manage power profiles, fan curves, keyboard backlights, and GPU switching (Hybrid, Integrated-only, Dedicated-only) directly on Linux.
+  * Installs specialized utilities for ASUS laptops (`asusctl`) and the GPU switcher suite (`envytweaks`) to manage power profiles, fan curves, keyboard backlights, and GPU switching (Hybrid, Integrated-only, Dedicated-only) directly on Linux.
+
   * Installs Intel's active thermal management daemon (`thermald`) to pro-actively regulate CPU energy/temperatures, preventing thermal throttling and stuttering under heavy load.
 * **🛡️ Module 13: Hardened Security Standard (Optional)**
   * Installs and configures **UFW Firewall** with strict baseline rules (deny incoming, allow outgoing) optimized for gaming.

@@ -35,9 +35,9 @@ pacman -S --needed --noconfirm \
     virt-viewer \
     dnsmasq \
     vde2 \
-    bridge-utils \
     openbsd-netcat \
     iptables-nft \
+    edk2-ovmf \
     libguestfs || log_warn "Could not install all virtualization libraries through pacman."
 
 # 2. Configure systemd services for Libvirt
@@ -81,5 +81,54 @@ else
     log_warn "virsh utility was not found. Networking setup deferred."
 fi
 
+# 5. Enable IOMMU for GPU Passthrough based on CPU Vendor
+log_info "Configuring IOMMU kernel parameters for GPU passthrough..."
+CPU_VENDOR=$(grep -m1 "vendor_id" /proc/cpuinfo | awk '{print $3}' || echo "Unknown")
+IOMMU_PARAM=""
+if [ "$CPU_VENDOR" = "GenuineIntel" ]; then
+    IOMMU_PARAM="intel_iommu=on iommu=pt"
+    log_info "Detected Intel CPU. Parameter: ${IOMMU_PARAM}"
+elif [ "$CPU_VENDOR" = "AuthenticAMD" ]; then
+    IOMMU_PARAM="amd_iommu=on iommu=pt"
+    log_info "Detected AMD CPU. Parameter: ${IOMMU_PARAM}"
+else
+    log_warn "Unknown CPU vendor: ${CPU_VENDOR}. Skipping automated IOMMU grub injection."
+fi
+
+if [ -n "$IOMMU_PARAM" ] && [ -f "/etc/default/grub" ]; then
+    if grep -q "iommu=" "/etc/default/grub"; then
+        log_info "IOMMU parameters already present in /etc/default/grub."
+    else
+        log_info "Adding IOMMU parameters to /etc/default/grub..."
+        # Inject before the closing quote of GRUB_CMDLINE_LINUX_DEFAULT
+        sed -i "s/\(GRUB_CMDLINE_LINUX_DEFAULT=\".*\)\(\"\)/\1 ${IOMMU_PARAM}\2/" /etc/default/grub
+        
+        # Regenerate GRUB configuration
+        if command -v grub-mkconfig &>/dev/null; then
+            log_info "Regenerating GRUB configuration..."
+            grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1 || log_warn "grub-mkconfig execution failed. Please regenerate manually."
+            log_success "GRUB configuration updated with IOMMU settings."
+        else
+            log_warn "grub-mkconfig command not found. Please regenerate your grub config manually."
+        fi
+    fi
+fi
+
+# 6. Configure VFIO PCI modules load on boot
+VFIO_CONF="/etc/modules-load.d/vfio.conf"
+log_info "Configuring VFIO PCI boot modules at ${VFIO_CONF}..."
+if [ ! -f "$VFIO_CONF" ]; then
+    cat <<EOF > "$VFIO_CONF"
+# VFIO modules for GPU passthrough, loaded automatically on boot
+vfio
+vfio_iommu_type1
+vfio_pci
+EOF
+    log_success "VFIO boot modules configuration created."
+else
+    log_info "VFIO boot modules configuration already exists."
+fi
+
 log_success "KVM/QEMU Virtualization Stack configured successfully!"
-echo -e "\n${YELLOW}💡 Note: Please LOG OUT and LOG IN again to apply 'libvirt' user group permissions! Open 'Virtual Machine Manager' to start creating your premium VMs.${RESET}\n"
+echo -e "\n${YELLOW}💡 Note: Please LOG OUT and LOG IN again to apply 'libvirt' user group permissions! Open 'Virtual Machine Manager' to start creating your premium VMs.${RESET}"
+echo -e "${YELLOW}💡 Note 2: A system reboot is required for IOMMU and VFIO GPU bindings to take effect.${RESET}\n"

@@ -41,10 +41,10 @@ fi
 
 log_info "Starting ASUS Laptop & Intel CPU Thermal optimization for user '${TARGET_USER}'..."
 
-# 1. Install required packages (asusctl, supergfxctl, thermald)
+# 1. Install required packages (asusctl, thermald)
 log_info "Installing ASUS control utilities and Intel thermal daemon..."
-if pacman -S --needed --noconfirm asusctl supergfxctl thermald; then
-    log_success "Successfully installed asusctl, supergfxctl, and thermald."
+if pacman -S --needed --noconfirm asusctl thermald; then
+    log_success "Successfully installed asusctl and thermald."
 else
     log_error "Failed to install required hardware packages. Verify your internet connection."
     exit 1
@@ -59,41 +59,50 @@ systemctl reset-failed asusd.service 2>/dev/null || true
 systemctl enable --now asusd.service 2>/dev/null || log_warn "Could not enable/start asusd.service."
 log_success "ASUS hardware daemon (asusd) is active."
 
-# 3. Configure and enable GPU switcher daemon (supergfxd)
-log_info "Configuring and enabling graphics mode switcher daemon (supergfxd)..."
-systemctl enable --now supergfxd.service 2>/dev/null || log_warn "Could not enable/start supergfxd.service."
-log_success "GPU switcher daemon (supergfxd) is active."
+# 3. Stop, disable and remove legacy supergfxctl if present
+log_info "Checking for legacy supergfxctl daemon..."
+if systemctl is-active --quiet supergfxd.service || systemctl is-enabled --quiet supergfxd.service 2>/dev/null; then
+    log_warn "Disabling and stopping legacy supergfxd.service..."
+    systemctl disable --now supergfxd.service 2>/dev/null || true
+fi
+if pacman -Qi supergfxctl &>/dev/null; then
+    log_warn "Removing legacy supergfxctl package..."
+    pacman -Rns --noconfirm supergfxctl || true
+fi
+
+# Install envytweaks GPU switcher
+log_info "Installing GPU mode switcher (envytweaks) from repository..."
+TEMP_DIR=$(mktemp -d)
+if git clone --quiet https://github.com/esfingex/envytweaks.git "$TEMP_DIR"; then
+    log_info "Running envytweaks installer..."
+    # Run installer. Since we are root here, we pass SUDO_USER to install the extension for the user
+    (cd "$TEMP_DIR" && export SUDO_USER="${TARGET_USER}" && ./install.sh)
+    log_success "Successfully installed envytweaks."
+else
+    log_error "Failed to clone envytweaks repository. GPU switcher not installed."
+fi
+rm -rf "$TEMP_DIR"
 
 # 4. Configure and enable Intel active thermal management daemon (thermald)
 log_info "Configuring and enabling Intel thermal daemon (thermald)..."
 systemctl enable --now thermald.service 2>/dev/null || log_warn "Could not enable/start thermald.service."
 log_success "Intel active thermal daemon (thermald) is active."
 
-# 5. Install GPU Switcher GNOME Shell Extension (chikobara/GPU-Switcher-Supergfxctl)
+# 5. Clean up legacy GPU Switcher GNOME extension if present
 if $IS_GNOME; then
-    log_info "Installing GPU Switcher GNOME Shell extension by chikobara..."
-    EXT_UUID="gpu-switcher-supergfxctl@chikobara.github.io"
-    EXT_DIR="${TARGET_HOME}/.local/share/gnome-shell/extensions/${EXT_UUID}"
-    
-    if [ "$TARGET_USER" != "root" ] && [ -d "${TARGET_HOME}" ]; then
-        mkdir -p "$(dirname "${EXT_DIR}")"
-        if [ -d "$EXT_DIR" ]; then
-            log_info "GPU Switcher extension is already cloned in ${EXT_DIR}. Updating..."
-            (cd "$EXT_DIR" && git pull) || log_warn "Could not update the extension from GitHub."
-        else
-            log_info "Cloning extension repository from GitHub..."
-            if git clone --quiet https://github.com/chikobara/GPU-Switcher-Supergfxctl.git "$EXT_DIR"; then
-                log_success "Successfully cloned extension to ${EXT_DIR}."
-            else
-                log_warn "Failed to clone GPU Switcher extension from GitHub."
-            fi
-        fi
-        chown -R "${TARGET_USER}:${TARGET_USER}" "$(dirname "${EXT_DIR}")"
-    else
-        log_warn "Target user is root or home directory does not exist. Skipping GNOME extension installation."
+    LEGACY_UUID="gpu-switcher-supergfxctl@chikobara.github.io"
+    LEGACY_DIR="${TARGET_HOME}/.local/share/gnome-shell/extensions/${LEGACY_UUID}"
+    if [ -d "$LEGACY_DIR" ]; then
+        log_warn "Removing legacy GPU Switcher GNOME extension..."
+        rm -rf "$LEGACY_DIR"
     fi
-else
-    log_info "Skipping GPU Switcher GNOME Shell extension (not running GNOME)."
+    
+    # Enable the newly installed envytweaks extension
+    if [ "$TARGET_USER" != "root" ]; then
+        log_info "Enabling envytweaks GNOME Shell extension for ${TARGET_USER}..."
+        # Run as the target user to modify their GNOME extension settings
+        su - "${TARGET_USER}" -c "gnome-extensions enable envytweaks@cachyos.org" 2>/dev/null || log_warn "Could not auto-enable envytweaks extension. Please enable it manually."
+    fi
 fi
 
 log_success "Laptop & Thermal Tuning optimizations applied successfully!"
@@ -101,7 +110,7 @@ log_success "Laptop & Thermal Tuning optimizations applied successfully!"
 # Output helpful CLI commands for user reference
 echo -e "\n${YELLOW}💡 Useful Commands & Usage Reference:${RESET}"
 echo -e "  - ${CYAN}asusctl profile -n${RESET}              : Toggle power profiles (Silent, Balanced, Turbo)"
-echo -e "  - ${CYAN}supergfxctl -g${RESET}                  : Show current active GPU mode"
-echo -e "  - ${CYAN}supergfxctl -m <Mode>${RESET}          : Switch GPU mode (Hybrid, Integrated, Dedicated)"
+echo -e "  - ${CYAN}envytweaks -q${RESET}                   : Show current active GPU mode"
+echo -e "  - ${CYAN}envytweaks -s <Mode>${RESET}            : Switch GPU mode (hybrid, integrated, nvidia)"
 echo -e "  - ${CYAN}systemctl status thermald${RESET}       : Check the active Intel thermal controller status"
-echo -e "${YELLOW}Note: Some GPU switching actions through supergfxctl may require you to log out and log in again to restart the graphic session.${RESET}\n"
+echo -e "${YELLOW}Note: Some GPU switching actions through envytweaks require you to restart your system to apply changes.${RESET}\n"

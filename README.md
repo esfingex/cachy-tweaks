@@ -110,15 +110,8 @@ Pass the names of the tools you want to install as CLI arguments:
 sudo ./scripts/easyarch.sh telegram gaming-core onlyoffice chrome github antigravity qbittorrent
 ```
 *Available argument options:* `telegram`, `gaming`, `github`, `chrome`, `onlyoffice`, `antigravity`, `qbittorrent`.
-
-### 🤖 Gemini API CLI Helper (`gemini`)
-Ask queries directly from your shell to Gemini 1.5 Flash:
-```bash
-gemini "write an automated python system-status parsing script"
-```
-*Note:* The key is saved securely in `~/.config/gemini_api_key`.
-
 ---
+
 
 ## 🛠️ Project Structure
 

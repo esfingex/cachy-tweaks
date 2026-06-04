@@ -107,5 +107,14 @@ fi
 log_info "Enabling systemd suspension services for NVIDIA..."
 systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service 2>/dev/null || log_warn "Could not enable NVIDIA systemd suspend/resume services."
 
+# Detect desktop environment and configure logout button visibility
+TARGET_USER="${SUDO_USER:-$USER}"
+if [[ "${XDG_CURRENT_DESKTOP:-}" == *"GNOME"* ]]; then
+    if [ "$TARGET_USER" != "root" ]; then
+        log_info "GNOME desktop detected. Forcing always-show-log-out to true..."
+        su - "$TARGET_USER" -c "gsettings set org.gnome.shell always-show-log-out true" 2>/dev/null || log_warn "Could not enable always-show-log-out setting."
+    fi
+fi
+
 log_success "NVIDIA & Wayland acceleration module applied successfully!"
 echo -e "\n${YELLOW}💡 Note: Please restart your session (log out and log in) to apply environment changes.${RESET}\n"

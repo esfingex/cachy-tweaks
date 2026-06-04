@@ -125,6 +125,9 @@ if $IS_GNOME; then
         log_info "Enabling envytweaks GNOME Shell extension for ${TARGET_USER}..."
         # Run as the target user to modify their GNOME extension settings
         su - "${TARGET_USER}" -c "gnome-extensions enable envytweaks@cachyos.org" 2>/dev/null || log_warn "Could not auto-enable envytweaks extension. Please enable it manually."
+        
+        log_info "Forcing GNOME Shell to always show the Log Out option..."
+        su - "${TARGET_USER}" -c "gsettings set org.gnome.shell always-show-log-out true" 2>/dev/null || log_warn "Could not enable always-show-log-out setting."
     fi
 fi
 

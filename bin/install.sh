@@ -56,6 +56,13 @@ echo -e "${RESET}"
 log_info "Initializing pre-flight installer checks..."
 log_info "Detected project directory: ${PROJECT_DIR}"
 
+# Configure GNOME logout button visibility if active
+if [[ "${XDG_CURRENT_DESKTOP:-}" == *"GNOME"* ]]; then
+    log_info "GNOME desktop detected. Forcing always-show-log-out to true..."
+    gsettings set org.gnome.shell always-show-log-out true 2>/dev/null || log_warn "Could not enable always-show-log-out setting."
+fi
+
+
 # Check if pacman is available (Arch-based system validation)
 if ! command -v pacman &>/dev/null; then
     log_error "Pacman package manager was not found. This tuning suite is strictly optimized for Arch/CachyOS."

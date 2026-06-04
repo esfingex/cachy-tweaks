@@ -1,18 +1,21 @@
-# 🏎️ cachy-gnome-tweaks
+# 🏎️ cachy-tweaks
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CachyOS](https://img.shields.io/badge/OS-CachyOS%20%2F%20Arch%20Linux-blue.svg)](https://cachyos.org/)
 [![GNOME](https://img.shields.io/badge/Desktop-GNOME%20%2F%20Wayland-green.svg)](https://www.gnome.org/)
+[![KDE](https://img.shields.io/badge/Desktop-KDE%20%2F%20Wayland-blue.svg)](https://kde.org/)
 
-An optimized, modular, and non-destructive performance tuning and developer environment suite tailored specifically for **CachyOS running GNOME**. 
+An optimized, modular, and non-destructive performance tuning and developer environment suite tailored specifically for **CachyOS running GNOME or KDE Plasma**. 
 
 This project isolates and refactors high-grade backend improvements (NVIDIA GPU hardware acceleration variables, network latency tweaks, automatic BTRFS Snapper backup hooks, inotify file-watcher expansions, and pre-configured developer runtime shims) into a clean, interactive selector menu.
+
 
 ---
 
 ## ✨ Features
 
-`cachy-gnome-tweaks` is fully interactive and completely optional—you choose exactly what optimizations to apply:
+`cachy-tweaks` is fully interactive and completely optional—you choose exactly what optimizations to apply:
+
 
 * **⚡ Module 1: NVIDIA Wayland & Electron HW Acceleration**
   * Auto-detects NVIDIA hardware.
@@ -57,9 +60,9 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
 * **⚡ Module 11: makepkg Native Compiler & RAM-disk Optimization (Optional)**
   * Optimizes the Arch Linux compilation system (`/etc/makepkg.conf`) so that any package built from source (like emulators or AUR packages) compiles in a high-speed RAM-disk (`/tmp/makepkg`), utilizes all CPU cores/threads dynamically (`-j$(nproc)`), and leverages native processor instruction sets (`-march=native -O3`).
 * **💻 Module 12: Laptop & Thermal Tuning (Optional)**
-  * Installs specialized utilities for ASUS laptops (`asusctl`) and the GPU switcher suite (`envytweaks`) to manage power profiles, fan curves, keyboard backlights, and GPU switching (Hybrid, Integrated-only, Dedicated-only) directly on Linux.
-
+  * Auto-detects system manufacturer. Installs specialized utilities for ASUS laptops (`asusctl`) and the universal GPU switching suite (`envytweaks`) to manage power profiles, fan curves, keyboard backlights, and GPU switching (Hybrid, Integrated-only, Dedicated-only) directly on Linux. Supports both **GNOME Shell Extension** and **KDE Plasma 6 Widget** out of the box (only installs `asusctl` on ASUS hardware).
   * Installs Intel's active thermal management daemon (`thermald`) to pro-actively regulate CPU energy/temperatures, preventing thermal throttling and stuttering under heavy load.
+
 * **🛡️ Module 13: Hardened Security Standard (Optional)**
   * Installs and configures **UFW Firewall** with strict baseline rules (deny incoming, allow outgoing) optimized for gaming.
   * Hardens authentication by reducing the **sudo timeout** to zero via a secure `/etc/sudoers.d/99-cachy-gnome-tweaks` drop-in.
@@ -83,10 +86,11 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
 Getting started is as simple as cloning the repository and running the central orchestrator:
 
 ```bash
-git clone https://github.com/esfingex/cachy-gnome-tweaks.git
-cd cachy-gnome-tweaks
+git clone https://github.com/esfingex/cachy-tweaks.git
+cd cachy-tweaks
 ./bin/install.sh
 ```
+
 
 ### 📦 Requirements
 
@@ -119,9 +123,10 @@ gemini "write an automated python system-status parsing script"
 ## 🛠️ Project Structure
 
 ```text
-cachy-gnome-tweaks/
+cachy-tweaks/
 ├── LICENSE                     # MIT Open Source License
 ├── README.md                   # Detailed user guide & overview
+
 ├── bin/
 │   └── install.sh              # Main GUM-driven selector installer
 ├── config/
@@ -147,11 +152,12 @@ cachy-gnome-tweaks/
 
 ## 🔍 Troubleshooting & Logs
 
-All installation runs write complete log outputs to `/tmp/cachy-gnome-tweaks.log` for debugging:
+All installation runs write complete log outputs to `/tmp/cachy-tweaks.log` for debugging:
 
 ```bash
-cat /tmp/cachy-gnome-tweaks.log
+cat /tmp/cachy-tweaks.log
 ```
+
 
 ### 💡 Post-Installation Steps
 
@@ -162,4 +168,5 @@ cat /tmp/cachy-gnome-tweaks.log
 
 ## 📄 License
 
-Distributed under the **MIT License**. See [LICENSE](file:///home/athena/Github/cachy-gnome-tweaks/LICENSE) for more details.
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for more details.
+

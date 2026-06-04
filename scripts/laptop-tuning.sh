@@ -39,25 +39,48 @@ elif [[ "${XDG_CURRENT_DESKTOP:-}" == *"GNOME"* ]]; then
     IS_GNOME=true
 fi
 
-log_info "Starting ASUS Laptop & Intel CPU Thermal optimization for user '${TARGET_USER}'..."
+# Detect if this is an ASUS laptop
+IS_ASUS=false
+SYS_VENDOR=$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null || echo "")
+BOARD_VENDOR=$(cat /sys/class/dmi/id/board_vendor 2>/dev/null || echo "")
+if [[ "$SYS_VENDOR" =~ [Aa][Ss][Uu][Ss] ]] || [[ "$BOARD_VENDOR" =~ [Aa][Ss][Uu][Ss] ]]; then
+    IS_ASUS=true
+fi
 
-# 1. Install required packages (asusctl, thermald)
-log_info "Installing ASUS control utilities and Intel thermal daemon..."
-if pacman -S --needed --noconfirm asusctl thermald; then
-    log_success "Successfully installed asusctl and thermald."
+log_info "Starting Laptop & Intel CPU Thermal optimization for user '${TARGET_USER}'..."
+
+# 1. Install required packages (asusctl if ASUS, thermald)
+if $IS_ASUS; then
+    log_info "ASUS hardware detected. Installing asusctl and Intel thermal daemon (thermald)..."
+    if pacman -S --needed --noconfirm asusctl thermald; then
+        log_success "Successfully installed asusctl and thermald."
+    else
+        log_error "Failed to install required hardware packages. Verify your internet connection."
+        exit 1
+    fi
 else
-    log_error "Failed to install required hardware packages. Verify your internet connection."
-    exit 1
+    log_info "Non-ASUS hardware detected. Installing Intel thermal daemon (thermald) only..."
+    if pacman -S --needed --noconfirm thermald; then
+        log_success "Successfully installed thermald."
+    else
+        log_error "Failed to install thermald package. Verify your internet connection."
+        exit 1
+    fi
 fi
 
 # 2. Configure and enable ASUS power & RGB daemon (asusd)
-log_info "Configuring and enabling ASUS hardware daemon (asusd)..."
-# Fix known systemd namespace bug by ensuring /etc/asusd exists
-mkdir -p /etc/asusd
-# Reset any previous systemd start limit failures to bypass rate limits
-systemctl reset-failed asusd.service 2>/dev/null || true
-systemctl enable --now asusd.service 2>/dev/null || log_warn "Could not enable/start asusd.service."
-log_success "ASUS hardware daemon (asusd) is active."
+if $IS_ASUS; then
+    log_info "Configuring and enabling ASUS hardware daemon (asusd)..."
+    # Fix known systemd namespace bug by ensuring /etc/asusd exists
+    mkdir -p /etc/asusd
+    # Reset any previous systemd start limit failures to bypass rate limits
+    systemctl reset-failed asusd.service 2>/dev/null || true
+    systemctl enable --now asusd.service 2>/dev/null || log_warn "Could not enable/start asusd.service."
+    log_success "ASUS hardware daemon (asusd) is active."
+else
+    log_info "Skipping ASUS hardware daemon (not an ASUS laptop)."
+fi
+
 
 # 3. Stop, disable and remove legacy supergfxctl if present
 log_info "Checking for legacy supergfxctl daemon..."
@@ -109,7 +132,9 @@ log_success "Laptop & Thermal Tuning optimizations applied successfully!"
 
 # Output helpful CLI commands for user reference
 echo -e "\n${YELLOW}💡 Useful Commands & Usage Reference:${RESET}"
-echo -e "  - ${CYAN}asusctl profile -n${RESET}              : Toggle power profiles (Silent, Balanced, Turbo)"
+if $IS_ASUS; then
+    echo -e "  - ${CYAN}asusctl profile -n${RESET}              : Toggle power profiles (Silent, Balanced, Turbo)"
+fi
 echo -e "  - ${CYAN}envytweaks -q${RESET}                   : Show current active GPU mode"
 echo -e "  - ${CYAN}envytweaks -s <Mode>${RESET}            : Switch GPU mode (hybrid, integrated, nvidia)"
 echo -e "  - ${CYAN}systemctl status thermald${RESET}       : Check the active Intel thermal controller status"

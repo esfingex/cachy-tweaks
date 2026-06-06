@@ -107,12 +107,59 @@ fi
 log_info "Enabling systemd suspension services for NVIDIA..."
 systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service 2>/dev/null || log_warn "Could not enable NVIDIA systemd suspend/resume services."
 
-# Detect desktop environment and configure logout button visibility
+# Detect desktop environment and configure GNOME settings
 TARGET_USER="${SUDO_USER:-$USER}"
 if [[ "${XDG_CURRENT_DESKTOP:-}" == *"GNOME"* ]]; then
     if [ "$TARGET_USER" != "root" ]; then
-        log_info "GNOME desktop detected. Forcing always-show-log-out to true..."
-        su - "$TARGET_USER" -c "gsettings set org.gnome.shell always-show-log-out true" 2>/dev/null || log_warn "Could not enable always-show-log-out setting."
+        log_info "GNOME desktop detected. Configuring GNOME environment..."
+        
+        # User session helper function for running gsettings
+        run_user_gsettings() {
+            local uid
+            uid=$(id -u "$TARGET_USER")
+            sudo -u "$TARGET_USER" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${uid}/bus" gsettings "$@"
+        }
+
+        run_user_gsettings set org.gnome.shell always-show-log-out true 2>/dev/null || log_warn "Could not enable always-show-log-out setting."
+        
+        # Detect VRR (Variable Refresh Rate) capability
+        has_vrr=false
+        if command -v edid-decode &>/dev/null; then
+            for edid in /sys/class/drm/*/edid; do
+                if edid-decode "$edid" >/dev/null 2>&1; then
+                    if edid-decode "$edid" 2>/dev/null | grep -qiE "vrr|freesync|range limits|minimum refresh rate"; then
+                        has_vrr=true
+                        break
+                    fi
+                fi
+            done
+        else
+            if grep -q "1" /sys/class/drm/*/vrr_capable 2>/dev/null; then
+                has_vrr=true
+            fi
+        fi
+
+        if [ "$has_vrr" = true ]; then
+            log_info "VRR-capable monitor detected!"
+            # In GNOME 50+, VRR is stable and no longer an experimental feature. We only set the experimental flag if the schema requires it.
+            if run_user_gsettings range org.gnome.mutter experimental-features 2>/dev/null | grep -q "variable-refresh-rate"; then
+                current_features=$(run_user_gsettings get org.gnome.mutter experimental-features 2>/dev/null || echo "@as []")
+                if [[ "$current_features" != *"'variable-refresh-rate'"* ]]; then
+                    log_info "Enabling GNOME Variable Refresh Rate (VRR) experimental feature..."
+                    if [[ "$current_features" == "@as []" || "$current_features" == "[]" ]]; then
+                        run_user_gsettings set org.gnome.mutter experimental-features "['variable-refresh-rate']" 2>/dev/null || log_warn "Could not enable VRR."
+                    else
+                        new_features="${current_features%]*}, 'variable-refresh-rate']"
+                        run_user_gsettings set org.gnome.mutter experimental-features "$new_features" 2>/dev/null || log_warn "Could not enable VRR."
+                    fi
+                    log_success "GNOME VRR experimental feature enabled! Log out and log back in to apply, then activate it in Settings -> Displays."
+                else
+                    log_success "GNOME Variable Refresh Rate (VRR) experimental feature is already enabled."
+                fi
+            else
+                log_success "GNOME Variable Refresh Rate (VRR) is supported natively on your system. You can configure it directly in Settings -> Displays."
+            fi
+        fi
     fi
 fi
 

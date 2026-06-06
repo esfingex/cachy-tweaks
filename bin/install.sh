@@ -56,10 +56,49 @@ echo -e "${RESET}"
 log_info "Initializing pre-flight installer checks..."
 log_info "Detected project directory: ${PROJECT_DIR}"
 
-# Configure GNOME logout button visibility if active
+# Configure GNOME-specific options if active
 if [[ "${XDG_CURRENT_DESKTOP:-}" == *"GNOME"* ]]; then
-    log_info "GNOME desktop detected. Forcing always-show-log-out to true..."
+    log_info "GNOME desktop detected. Configuring GNOME environment..."
     gsettings set org.gnome.shell always-show-log-out true 2>/dev/null || log_warn "Could not enable always-show-log-out setting."
+    
+    # Detect VRR (Variable Refresh Rate) capability
+    has_vrr=false
+    if command -v edid-decode &>/dev/null; then
+        for edid in /sys/class/drm/*/edid; do
+            if edid-decode "$edid" >/dev/null 2>&1; then
+                if edid-decode "$edid" 2>/dev/null | grep -qiE "vrr|freesync|range limits|minimum refresh rate"; then
+                    has_vrr=true
+                    break
+                fi
+            fi
+        done
+    else
+        if grep -q "1" /sys/class/drm/*/vrr_capable 2>/dev/null; then
+            has_vrr=true
+        fi
+    fi
+
+    if [ "$has_vrr" = true ]; then
+        log_info "VRR-capable monitor detected!"
+        # In GNOME 50+, VRR is stable and no longer an experimental feature. We only set the experimental flag if the schema requires it.
+        if gsettings range org.gnome.mutter experimental-features 2>/dev/null | grep -q "variable-refresh-rate"; then
+            current_features=$(gsettings get org.gnome.mutter experimental-features 2>/dev/null || echo "@as []")
+            if [[ "$current_features" != *"'variable-refresh-rate'"* ]]; then
+                log_info "Enabling GNOME Variable Refresh Rate (VRR) experimental feature..."
+                if [[ "$current_features" == "@as []" || "$current_features" == "[]" ]]; then
+                    gsettings set org.gnome.mutter experimental-features "['variable-refresh-rate']" 2>/dev/null || log_warn "Could not enable VRR."
+                else
+                    new_features="${current_features%]*}, 'variable-refresh-rate']"
+                    gsettings set org.gnome.mutter experimental-features "$new_features" 2>/dev/null || log_warn "Could not enable VRR."
+                fi
+                log_success "GNOME VRR experimental feature enabled! Log out and log back in to apply, then activate it in Settings -> Displays."
+            else
+                log_success "GNOME Variable Refresh Rate (VRR) experimental feature is already enabled."
+            fi
+        else
+            log_success "GNOME Variable Refresh Rate (VRR) is supported natively on your system. You can configure it directly in Settings -> Displays."
+        fi
+    fi
 fi
 
 

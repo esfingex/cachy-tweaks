@@ -18,6 +18,7 @@ log_success() { echo -e "${GREEN}[+] $1${RESET}"; }
 log_warn() { echo -e "${YELLOW}[!] $1${RESET}"; }
 log_error() { echo -e "${RED}[ERROR] $1${RESET}" >&2; }
 
+
 # Pre-checks
 if [ "$EUID" -ne 0 ]; then
     log_error "This script module must be run as root (sudo)."
@@ -29,6 +30,19 @@ if [ "$TARGET_USER" = "root" ]; then
     TARGET_HOME="/root"
 else
     TARGET_HOME="/home/$TARGET_USER"
+fi
+
+# Configure temporary passwordless pacman access for target user (required for AUR helpers like yay)
+SUDOERS_FILE="/etc/sudoers.d/cachy-easyarch-temp"
+cleanup() {
+    rm -f "$SUDOERS_FILE"
+}
+trap cleanup EXIT
+
+if [ "$TARGET_USER" != "root" ]; then
+    log_info "Configuring temporary passwordless pacman access for ${TARGET_USER}..."
+    echo "${TARGET_USER} ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "$SUDOERS_FILE"
+    chmod 440 "$SUDOERS_FILE"
 fi
 
 # Detect desktop environment

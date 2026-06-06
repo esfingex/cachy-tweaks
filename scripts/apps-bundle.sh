@@ -30,6 +30,20 @@ else
     TARGET_HOME="/home/$TARGET_USER"
 fi
 
+# Configure temporary passwordless pacman access for target user (required for AUR helpers like yay)
+SUDOERS_FILE="/etc/sudoers.d/cachy-apps-bundle-temp"
+cleanup() {
+    rm -f "$SUDOERS_FILE"
+}
+trap cleanup EXIT
+
+if [ "$TARGET_USER" != "root" ]; then
+    log_info "Configuring temporary passwordless pacman access for ${TARGET_USER}..."
+    echo "${TARGET_USER} ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "$SUDOERS_FILE"
+    chmod 440 "$SUDOERS_FILE"
+fi
+
+
 # Detect desktop environment
 IS_KDE=false
 IS_GNOME=false

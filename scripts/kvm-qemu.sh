@@ -95,6 +95,7 @@ else
     log_warn "Unknown CPU vendor: ${CPU_VENDOR}. Skipping automated IOMMU grub injection."
 fi
 
+# Apply parameters to GRUB if present
 if [ -n "$IOMMU_PARAM" ] && [ -f "/etc/default/grub" ]; then
     if grep -q "iommu=" "/etc/default/grub"; then
         log_info "IOMMU parameters already present in /etc/default/grub."
@@ -110,6 +111,30 @@ if [ -n "$IOMMU_PARAM" ] && [ -f "/etc/default/grub" ]; then
             log_success "GRUB configuration updated with IOMMU settings."
         else
             log_warn "grub-mkconfig command not found. Please regenerate your grub config manually."
+        fi
+    fi
+fi
+
+# Apply parameters to Limine if present
+if [ -n "$IOMMU_PARAM" ] && [ -f "/etc/default/limine" ]; then
+    if grep -q "iommu=" "/etc/default/limine"; then
+        log_info "IOMMU parameters already present in /etc/default/limine."
+    else
+        log_info "Adding IOMMU parameters to /etc/default/limine..."
+        # Inject before the closing quote of KERNEL_CMDLINE[default]
+        sed -i "s/\(KERNEL_CMDLINE\[default\]+=\".*\)\(\"\)/\1 ${IOMMU_PARAM}\2/" /etc/default/limine
+        
+        # Regenerate Limine configuration
+        if command -v limine-mkinitcpio &>/dev/null; then
+            log_info "Regenerating Limine configuration..."
+            limine-mkinitcpio >/dev/null 2>&1 || log_warn "limine-mkinitcpio execution failed. Please regenerate manually."
+            log_success "Limine configuration updated with IOMMU settings."
+        elif command -v limine-dracut &>/dev/null; then
+            log_info "Regenerating Limine configuration (dracut)..."
+            limine-dracut >/dev/null 2>&1 || log_warn "limine-dracut execution failed. Please regenerate manually."
+            log_success "Limine configuration updated with IOMMU settings."
+        else
+            log_warn "Limine generation command not found. Please run 'sudo limine-mkinitcpio' or 'sudo limine-dracut' manually."
         fi
     fi
 fi

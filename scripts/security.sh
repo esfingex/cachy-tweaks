@@ -117,8 +117,31 @@ if [ -f "/etc/default/grub" ]; then
     else
         log_info "AppArmor kernel boot parameters are already present in GRUB configuration."
     fi
-else
-    log_warn "GRUB config /etc/default/grub not found. If using systemd-boot or another bootloader, ensure you manually append 'apparmor=1 lsm=landlock,lockdown,yama,apparmor,bpf' to your kernel parameters."
+fi
+
+# Inject kernel command line arguments for Limine (if present)
+if [ -f "/etc/default/limine" ]; then
+    if ! grep -q "apparmor=1" "/etc/default/limine"; then
+        log_info "Limine bootloader detected. Appending AppArmor parameters to KERNEL_CMDLINE[default]..."
+        sed -i 's/\(KERNEL_CMDLINE\[default\]+="\)/\1apparmor=1 lsm=landlock,lockdown,yama,apparmor,bpf /' /etc/default/limine
+        
+        if command -v limine-mkinitcpio &>/dev/null; then
+            log_info "Regenerating Limine configuration file..."
+            limine-mkinitcpio >/dev/null 2>&1 || log_warn "limine-mkinitcpio execution failed. Please run it manually to apply boot parameters."
+        elif command -v limine-dracut &>/dev/null; then
+            log_info "Regenerating Limine configuration file (dracut)..."
+            limine-dracut >/dev/null 2>&1 || log_warn "limine-dracut execution failed. Please run it manually to apply boot parameters."
+        else
+            log_warn "Limine generation command not found. Please regenerate your bootloader config manually."
+        fi
+        log_success "Limine boot parameters updated. These changes will apply fully on your next system reboot."
+    else
+        log_info "AppArmor kernel boot parameters are already present in Limine configuration."
+    fi
+fi
+
+if [ ! -f "/etc/default/grub" ] && [ ! -f "/etc/default/limine" ]; then
+    log_warn "Neither GRUB nor Limine configurations found. If using systemd-boot or another bootloader, ensure you manually append 'apparmor=1 lsm=landlock,lockdown,yama,apparmor,bpf' to your kernel parameters."
 fi
 
 # 5. Bootstrap Lynis Audit Tool

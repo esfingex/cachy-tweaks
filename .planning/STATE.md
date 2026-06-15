@@ -2,8 +2,8 @@
 
 ## Development State
 
-*   **Active Phase**: Wave 001 — integrate swappiness and trim speed tweaks
-*   **Current Milestone**: Wave completed successfully.
+*   **Active Phase**: Wave 002 — integrate additional community tools and paccache cleanups
+*   **Current Milestone**: Starting wave implementation.
 *   **Git Position**: [Active branch or commit hash]
 
 ---

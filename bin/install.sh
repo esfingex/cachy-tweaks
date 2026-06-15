@@ -122,6 +122,13 @@ while true; do
 done 2>/dev/null &
 SUDO_PID=$!
 
+# Optimize CachyOS mirrors to prevent package download hangs
+if command -v cachyos-rate-mirrors &>/dev/null; then
+    log_info "Ranking and optimizing CachyOS download mirrors (cachyos-rate-mirrors)..."
+    sudo cachyos-rate-mirrors || log_warn "Could not optimize mirrors successfully."
+    log_success "Mirrorlist optimized successfully."
+fi
+
 # Guarantee 'gum' utility is available for premium interactive menus
 if ! command -v gum &>/dev/null; then
     log_info "'gum' interactive terminal utility was not found. Installing via pacman..."

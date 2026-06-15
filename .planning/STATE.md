@@ -3,7 +3,7 @@
 ## Development State
 
 *   **Active Phase**: Wave 003 — automate mirror rating in installer
-*   **Current Milestone**: Starting wave implementation.
+*   **Current Milestone**: Wave completed successfully.
 *   **Git Position**: [Active branch or commit hash]
 
 ---
@@ -33,4 +33,11 @@
 *   **Date**: 2026-06-15
 *   **Context**: Modern CachyOS setups benefit significantly from fast, GPU-accelerated, and Rust-based terminal tools (like kitty, yazi) and process monitoring (htop).
 *   **Decision**: Add yazi, kitty, goverlay, micro, and htop to the core developer package installation block in `dev-tools.sh`.
+
+
+
+### ADR: Automate CachyOS mirrorlist optimization on installer startup
+*   **Date**: 2026-06-15
+*   **Context**: Dead or slow mirrors on Arch/CachyOS can cause silent hangs or 404 package errors during automated script installations.
+*   **Decision**: Automatically execute `cachyos-rate-mirrors` at the start of the installer (right after obtaining root credentials) to dynamically optimize download routes.
 

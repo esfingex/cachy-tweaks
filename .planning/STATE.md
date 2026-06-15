@@ -3,7 +3,7 @@
 ## Development State
 
 *   **Active Phase**: Wave 004 — remove yazi and htop from developer tools
-*   **Current Milestone**: Starting wave implementation.
+*   **Current Milestone**: Wave completed successfully.
 *   **Git Position**: [Active branch or commit hash]
 
 ---
@@ -40,4 +40,11 @@
 *   **Date**: 2026-06-15
 *   **Context**: Dead or slow mirrors on Arch/CachyOS can cause silent hangs or 404 package errors during automated script installations.
 *   **Decision**: Automatically execute `cachyos-rate-mirrors` at the start of the installer (right after obtaining root credentials) to dynamically optimize download routes.
+
+
+
+### ADR: Tailor developer tools package list to user preferences
+*   **Date**: 2026-06-15
+*   **Context**: Installing CLI tools that the user does not find appealing (like yazi) or has no use for (like htop) adds unnecessary package bloat.
+*   **Decision**: Remove yazi and htop from the package installation list in scripts/dev-tools.sh.
 

@@ -46,7 +46,7 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Verifies or bootstraps `yay` AUR helper integration.
   * Installs and configures [tmux](https://github.com/tmux/tmux) with mouse support, intuitive panel splitting bindings, and ultra-fast escape-latency.
   * Registers environment shims for [mise](https://mise.jdx.dev/) runtime manager dynamically inside `.bashrc` and `config.fish`.
-  * Installs lightweight, GPU-accelerated, and optimized developer tools: `yazi` (Rust terminal file manager), `kitty` (GPU terminal), `goverlay` (gaming overlay manager), `micro` (modern text editor), and `htop` (process viewer).
+  * Installs lightweight, GPU-accelerated, and optimized developer tools: `kitty` (GPU terminal), `goverlay` (gaming overlay manager), and `micro` (modern text editor).
 * **📦 Module 6: Premium Apps Bundle (Optional)**
   * Installs **Vivaldi Browser** along with proprietary media codecs, GNOME Shell browser connector integration (`gnome-browser-connector`), and automatically sets up hardware accelerated video decoding (VA-API) in Vivaldi configuration flags for seamless YouTube/video rendering.
   * Deploys the high-fidelity **Audio Stack & Bluetooth Codecs** (LDAC, aptX) alongside `pavucontrol` (volume mixer GUI) for superior sound stability and control.

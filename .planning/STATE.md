@@ -3,7 +3,7 @@
 ## Development State
 
 *   **Active Phase**: Wave 005 — remove goverlay from developer tools
-*   **Current Milestone**: Starting wave implementation.
+*   **Current Milestone**: Wave completed successfully.
 *   **Git Position**: [Active branch or commit hash]
 
 ---
@@ -47,4 +47,11 @@
 *   **Date**: 2026-06-15
 *   **Context**: Installing CLI tools that the user does not find appealing (like yazi) or has no use for (like htop) adds unnecessary package bloat.
 *   **Decision**: Remove yazi and htop from the package installation list in scripts/dev-tools.sh.
+
+
+
+### ADR: Avoid game-platform dependent overlay utilities in system tools
+*   **Date**: 2026-06-15
+*   **Context**: GOverlay relies heavily on Steam setups and libraries. For users playing independent/standalone or non-Steam game builds, this introduces unwanted dependencies.
+*   **Decision**: Remove goverlay from the package installation list in scripts/dev-tools.sh.
 

@@ -3,7 +3,7 @@
 ## Development State
 
 *   **Active Phase**: Wave 001 — integrate swappiness and trim speed tweaks
-*   **Current Milestone**: Starting wave implementation.
+*   **Current Milestone**: Wave completed successfully.
 *   **Git Position**: [Active branch or commit hash]
 
 ---
@@ -20,3 +20,10 @@
 
 ## Active Blockers
 *   None.
+
+
+### ADR: Consolidate sysctl VM and connection tweaks
+*   **Date**: 2026-06-15
+*   **Context**: Adding standalone configuration files for every sysctl optimization can pollute the `/etc/sysctl.d/` directory.
+*   **Decision**: Consolidate network latency, kernel security, swappiness, and cache pressure tweaks into the single `99-cachy-gnome-tweaks.conf` file managed by `scripts/network.sh`.
+

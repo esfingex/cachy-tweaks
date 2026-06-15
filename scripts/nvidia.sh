@@ -93,19 +93,59 @@ else
     log_success "Created chromium-flags.conf with VA-API enabled."
 fi
 
-# Setup NVIDIA Persistent Suspend/Resume power management options for Wayland
-log_info "Configuring NVIDIA persistent Wayland suspension power management..."
-MODPROBE_FILE="/etc/modprobe.d/nvidia-power-management.conf"
-if [ ! -f "$MODPROBE_FILE" ] || ! grep -q "NVreg_PreserveVideoMemoryAllocations" "$MODPROBE_FILE"; then
-    echo "options nvidia NVreg_PreserveVideoMemoryAllocations=1" > "$MODPROBE_FILE"
-    log_success "Configured PreserveVideoMemoryAllocations=1 in ${MODPROBE_FILE}"
-else
-    log_info "NVIDIA video memory allocation preservation already active in ${MODPROBE_FILE}."
+# Setup NVIDIA kernel module parameters (modprobe)
+log_info "Configuring NVIDIA kernel module options..."
+TWEAKS_CONF="/etc/modprobe.d/nvidia-tweaks.conf"
+cat << 'EOF' > "$TWEAKS_CONF"
+# Configuration file created by cachy-tweaks
+
+# Enable PreserveVideoMemoryAllocations for Wayland suspend/resume stability
+# Enable EnableStreamMemOPs=1 for CUDA stream memory operations
+# Enable RMIntrLockingMode=1 for low-latency frame presentation (driver 570+)
+# Enable EnableResizableBar=1 for Resizable BAR support
+options nvidia NVreg_PreserveVideoMemoryAllocations=1 NVreg_EnableStreamMemOPs=1 NVreg_RegistryDwords=RMIntrLockingMode=1 NVreg_EnableResizableBar=1
+
+# Enable modesetting for nvidia_drm (critical for Wayland/PRIME)
+options nvidia_drm modeset=1
+EOF
+log_success "Configured NVIDIA driver options in ${TWEAKS_CONF}"
+
+# Clean up legacy power management file if present (consolidated into nvidia-tweaks.conf)
+if [ -f "/etc/modprobe.d/nvidia-power-management.conf" ]; then
+    rm -f "/etc/modprobe.d/nvidia-power-management.conf"
+    log_info "Removed legacy /etc/modprobe.d/nvidia-power-management.conf file."
 fi
 
 # Enable required NVIDIA systemd suspend/hibernate/resume services
-log_info "Enabling systemd suspension services for NVIDIA..."
+log_info "Enabling systemd suspension and power services for NVIDIA..."
 systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service 2>/dev/null || log_warn "Could not enable NVIDIA systemd suspend/resume services."
+
+# Enable nvidia-powerd if supported/present (for laptop TDP Dynamic Boost)
+if systemctl list-unit-files | grep -q "^nvidia-powerd.service"; then
+    systemctl enable nvidia-powerd.service 2>/dev/null || log_warn "Could not enable nvidia-powerd.service."
+    log_success "Enabled nvidia-powerd.service for Dynamic Boost."
+fi
+
+# Setup Firejail compatibility if Firejail is present
+if command -v firejail &>/dev/null; then
+    log_info "Firejail detected. Configuring NVIDIA acceleration compatibility rules..."
+    fj_user="${SUDO_USER:-$USER}"
+    if [ "$fj_user" != "root" ]; then
+        fj_dir="/home/${fj_user}/.config/firejail"
+        mkdir -p "$fj_dir"
+        fj_file="${fj_dir}/globals.local"
+        
+        # Append rules if not already present
+        for rule in "noblacklist /sys/module" "whitelist /sys/module/nvidia*" "read-only /sys/module/nvidia*"; do
+            if [ -f "$fj_file" ] && grep -qF "$rule" "$fj_file"; then
+                continue
+            fi
+            echo "$rule" >> "$fj_file"
+        done
+        chown -R "${fj_user}:${fj_user}" "$fj_dir"
+        log_success "Firejail compatibility rules configured in ${fj_file}"
+    fi
+fi
 
 # Detect desktop environment and configure GNOME settings
 TARGET_USER="${SUDO_USER:-$USER}"

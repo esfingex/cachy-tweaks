@@ -21,8 +21,19 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Auto-detects NVIDIA hardware.
   * Injects critical Wayland environment overrides (`__GLX_VENDOR_LIBRARY_NAME`, `GBM_BACKEND`, `NVD_BACKEND`, `ELECTRON_OZONE_PLATFORM_HINT`) to solve lag, screen-tearing, and rendering stutter in modern Electron apps and flatpaks.
   * Auto-injects VA-API hardware video decoding flags for Chromium-based browsers.
+  * Writes custom driver modprobe configurations to `/etc/modprobe.d/nvidia-tweaks.conf`:
+    * `NVreg_PreserveVideoMemoryAllocations=1`: Stabilizes VRAM allocation during system suspension/resume under Wayland.
+    * `NVreg_EnableStreamMemOPs=1`: Activates CUDA stream memory operations for compute/AI workloads.
+    * `NVreg_RegistryDwords=RMIntrLockingMode=1`: Enables ultra-low-latency display interrupt locking mode (standard since driver 580.xx).
+    * `NVreg_EnableResizableBar=1`: Enables motherboard/GPU Resizable BAR rendering memory performance.
+    * `nvidia_drm modeset=1`: Core display modesetting parameter for Wayland and hybrid configurations.
+  * Auto-enables specialized laptop GPU services (`nvidia-powerd.service` for dynamic TDP/Dynamic Boost) and registers Firejail sandbox NVIDIA hardware acceleration exceptions.
 * **🌐 Module 2: Latency & Network Stability**
-  * Configures advanced sysctl keepalive buffers and enables TCP MTU Probing to prevent high-latency dropouts and SSH disconnects.
+  * Configures advanced sysctl TCP MTU Probing and security parameters in `/etc/sysctl.d/99-cachy-gnome-tweaks.conf` to solve high-latency drops, protect against attacks, and prevent memory leaks.
+  * Optimizes **Virtual Memory & Swap** configurations:
+    * `vm.swappiness = 10`: Prefers physical RAM over swap disk paging to prevent SSD bottlenecks and stutter.
+    * `vm.vfs_cache_pressure = 50`: Caches filesystem metadata structures (inodes/dentries) in RAM longer for snappy file browsing.
+  * Automatically schedules **periodic SSD TRIM operations** (`fstrim.timer`) to maintain drive performance and write lifespan.
   * Masks slow network-waiting services to accelerate system boot times.
   * Safely migrates NetworkManager to use the modern, lightweight `iwd` Wi-Fi backend (if installed) for fast wireless roaming.
 * **📂 Module 3: Linux File Watchers (inotify) Expansion**
@@ -145,10 +156,10 @@ cachy-tweaks/
 
 ## 🔍 Troubleshooting & Logs
 
-All installation runs write complete log outputs to `/tmp/cachy-tweaks.log` for debugging:
+All installation runs write complete log outputs to a user-specific file for debugging:
 
 ```bash
-cat /tmp/cachy-tweaks.log
+cat /tmp/cachy-gnome-tweaks-${USER}.log
 ```
 
 

@@ -54,6 +54,12 @@ net.ipv4.conf.all.send_redirects=0
 net.ipv4.conf.default.send_redirects=0
 net.ipv4.conf.all.log_martians=1
 net.ipv4.conf.default.log_martians=1
+
+# Virtual Memory (zram/swap optimization)
+# vm.swappiness = 10: Prefer physical RAM over swap to prevent SSD paging bottleneck
+# vm.vfs_cache_pressure = 50: Keep filesystem metadata cached in RAM longer
+vm.swappiness=10
+vm.vfs_cache_pressure=50
 EOF
 
 sysctl --system >/dev/null 2>&1 || log_warn "Could not hot-reload sysctl configurations immediately; they will apply on next boot."
@@ -89,13 +95,21 @@ if command -v iwd &>/dev/null; then
         else
             log_info "NetworkManager is already configured to use 'iwd' backend."
         fi
-    else
         mkdir -p "$(dirname "$NM_CONF")"
         printf "[device]\nwifi.backend=iwd\n" > "$NM_CONF"
         log_success "Created NetworkManager.conf with 'iwd' wifi backend."
     fi
 else
     log_warn "'iwd' package is not installed. Skipping wifi backend switch to preserve default backend."
+fi
+
+# 4. Enable periodic SSD TRIM timer
+log_info "Enabling periodic SSD TRIM support..."
+if systemctl list-unit-files | grep -q "^fstrim.timer"; then
+    systemctl enable --now fstrim.timer 2>/dev/null || log_warn "Could not enable fstrim.timer."
+    log_success "Enabled periodic SSD TRIM (fstrim.timer)."
+else
+    log_warn "fstrim.timer is not supported on this system."
 fi
 
 log_success "Network optimization module applied successfully!"

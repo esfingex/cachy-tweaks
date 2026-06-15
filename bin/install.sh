@@ -19,7 +19,8 @@ log_warn() { echo -e "${YELLOW}[!] $1${RESET}"; }
 log_error() { echo -e "${RED}[ERROR] $1${RESET}" >&2; }
 
 # Setup logging destination
-LOG_FILE="/tmp/cachy-gnome-tweaks.log"
+LOG_FILE="/tmp/cachy-gnome-tweaks-${USER:-$(whoami)}.log"
+rm -f "$LOG_FILE" 2>/dev/null || true
 echo "=== cachy-gnome-tweaks Installer Log: $(date) ===" > "$LOG_FILE"
 
 # Clean up helper

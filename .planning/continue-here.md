@@ -2,8 +2,8 @@
 
 ## Current Context Handoff
 
-*   **Last Milestone**: Connected cachy-tweaks to the Alicanto GSD methodology, executed and closed Wave 001 to integrate swappiness, cache pressure, and SSD TRIM timer optimizations in `scripts/network.sh`.
-*   **Immediate Next Step**: Run the updated `./bin/install.sh` and select `🌐 [2] System Latency & Connection sysctl rules` to apply the virtual memory and TRIM optimizations on the system.
+*   **Last Milestone**: Executed and closed Wave 002. Integrated community speed suggestions: added high-performance utilities (yazi, kitty, goverlay, micro, htop) to `dev-tools.sh` and pacman cache cleaning (paccache) to `debloat.sh`.
+*   **Immediate Next Step**: Run `./bin/install.sh` to apply either the developer tools (Module 5) or the bloatware remover (Module 10) to test these integrations live.
 
 ---
 

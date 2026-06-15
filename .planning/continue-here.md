@@ -2,8 +2,8 @@
 
 ## Current Context Handoff
 
-*   **Last Milestone**: Executed and closed Wave 002. Integrated community speed suggestions: added high-performance utilities (yazi, kitty, goverlay, micro, htop) to `dev-tools.sh` and pacman cache cleaning (paccache) to `debloat.sh`.
-*   **Immediate Next Step**: Run `./bin/install.sh` to apply either the developer tools (Module 5) or the bloatware remover (Module 10) to test these integrations live.
+*   **Last Milestone**: Executed and closed Wave 003. Automated CachyOS mirrorlist optimization via `cachyos-rate-mirrors` at the start of `bin/install.sh` to prevent download hangs.
+*   **Immediate Next Step**: Run `sudo ./bin/install.sh` to verify that mirror ranking executes successfully and proceeds to the installer menu.
 
 ---
 

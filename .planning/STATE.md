@@ -2,8 +2,8 @@
 
 ## Development State
 
-*   **Active Phase**: Wave 002 — integrate additional community tools and paccache cleanups
-*   **Current Milestone**: Wave completed successfully.
+*   **Active Phase**: Wave 003 — automate mirror rating in installer
+*   **Current Milestone**: Starting wave implementation.
 *   **Git Position**: [Active branch or commit hash]
 
 ---

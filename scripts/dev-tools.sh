@@ -33,8 +33,8 @@ fi
 log_info "Initiating Developer Stack setup for user '${TARGET_USER}'..."
 
 # 1. Install packages via pacman (highly optimized Arch packages)
-log_info "Installing tmux and mise via pacman..."
-pacman -S --needed --noconfirm tmux mise || log_warn "Could not install all developer packages through pacman immediately."
+log_info "Installing tmux, mise, yazi, kitty, goverlay, micro, and htop via pacman..."
+pacman -S --needed --noconfirm tmux mise yazi kitty goverlay micro htop || log_warn "Could not install all developer packages through pacman immediately."
 
 # 2. Check and bootstrap yay helper if missing
 log_info "Verifying AUR helper (yay)..."

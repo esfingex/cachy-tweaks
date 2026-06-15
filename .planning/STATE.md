@@ -3,7 +3,7 @@
 ## Development State
 
 *   **Active Phase**: Wave 002 — integrate additional community tools and paccache cleanups
-*   **Current Milestone**: Starting wave implementation.
+*   **Current Milestone**: Wave completed successfully.
 *   **Git Position**: [Active branch or commit hash]
 
 ---
@@ -26,4 +26,11 @@
 *   **Date**: 2026-06-15
 *   **Context**: Adding standalone configuration files for every sysctl optimization can pollute the `/etc/sysctl.d/` directory.
 *   **Decision**: Consolidate network latency, kernel security, swappiness, and cache pressure tweaks into the single `99-cachy-gnome-tweaks.conf` file managed by `scripts/network.sh`.
+
+
+
+### ADR: Install high-performance terminal utilities by default
+*   **Date**: 2026-06-15
+*   **Context**: Modern CachyOS setups benefit significantly from fast, GPU-accelerated, and Rust-based terminal tools (like kitty, yazi) and process monitoring (htop).
+*   **Decision**: Add yazi, kitty, goverlay, micro, and htop to the core developer package installation block in `dev-tools.sh`.
 

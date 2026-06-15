@@ -97,3 +97,25 @@ if gum confirm "¿Estás seguro de que deseas desinstalar estas aplicaciones?"; 
 else
     log_warn "Debloat operation cancelled by the user."
 fi
+
+# Clean Pacman cache (paccache)
+log_info "Cleaning up old package archives from pacman cache..."
+if command -v paccache &>/dev/null; then
+    # Keep only the last 2 versions of each package
+    if paccache -r -k 2; then
+        log_success "Successfully cleaned up old pacman package cache (kept last 2 versions)."
+    else
+        log_warn "Failed to clean pacman package cache cleanly."
+    fi
+else
+    log_info "'paccache' utility not found. Installing pacman-contrib to enable cache cleaning..."
+    if pacman -S --needed --noconfirm pacman-contrib >/dev/null 2>&1; then
+        if paccache -r -k 2; then
+            log_success "Successfully cleaned up old pacman package cache (kept last 2 versions)."
+        else
+            log_warn "Failed to clean pacman package cache."
+        fi
+    else
+        log_warn "Could not install 'pacman-contrib'. Skipping cache cleanup."
+    fi
+fi

@@ -46,6 +46,7 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Verifies or bootstraps `yay` AUR helper integration.
   * Installs and configures [tmux](https://github.com/tmux/tmux) with mouse support, intuitive panel splitting bindings, and ultra-fast escape-latency.
   * Registers environment shims for [mise](https://mise.jdx.dev/) runtime manager dynamically inside `.bashrc` and `config.fish`.
+  * Installs lightweight, GPU-accelerated, and optimized developer tools: `yazi` (Rust terminal file manager), `kitty` (GPU terminal), `goverlay` (gaming overlay manager), `micro` (modern text editor), and `htop` (process viewer).
 * **📦 Module 6: Premium Apps Bundle (Optional)**
   * Installs **Vivaldi Browser** along with proprietary media codecs, GNOME Shell browser connector integration (`gnome-browser-connector`), and automatically sets up hardware accelerated video decoding (VA-API) in Vivaldi configuration flags for seamless YouTube/video rendering.
   * Deploys the high-fidelity **Audio Stack & Bluetooth Codecs** (LDAC, aptX) alongside `pavucontrol` (volume mixer GUI) for superior sound stability and control.
@@ -68,6 +69,7 @@ This project isolates and refactors high-grade backend improvements (NVIDIA GPU 
   * Registers user in the `docker` group and configures **NVIDIA CUDA Container Toolkit** runtime hooks directly inside `/etc/docker/daemon.json`.
 * **🧹 Module 10: Bloatware Remover (Optional)**
   * Interactively purges unused pre-installed applications like **Alacritty**, **GNOME Web (Epiphany)**, **GNOME Tour**, and other redundant utilities to keep your desktop system light and clean.
+  * Automatically runs `paccache` cleanup to delete old package archives from `/var/cache/pacman/pkg/`, retaining only the last two versions.
 * **⚡ Module 11: makepkg Native Compiler & RAM-disk Optimization (Optional)**
   * Optimizes the Arch Linux compilation system (`/etc/makepkg.conf`) so that any package built from source (like emulators or AUR packages) compiles in a high-speed RAM-disk (`/tmp/makepkg`), utilizes all CPU cores/threads dynamically (`-j$(nproc)`), and leverages native processor instruction sets (`-march=native -O3`).
 * **💻 Module 12: Laptop & Thermal Tuning (Optional)**

@@ -2,8 +2,8 @@
 
 ## Development State
 
-*   **Active Phase**: Wave 003 — automate mirror rating in installer
-*   **Current Milestone**: Wave completed successfully.
+*   **Active Phase**: Wave 004 — remove yazi and htop from developer tools
+*   **Current Milestone**: Starting wave implementation.
 *   **Git Position**: [Active branch or commit hash]
 
 ---

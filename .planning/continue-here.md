@@ -2,8 +2,8 @@
 
 ## Current Context Handoff
 
-*   **Last Milestone**: Executed and closed Wave 003. Automated CachyOS mirrorlist optimization via `cachyos-rate-mirrors` at the start of `bin/install.sh` to prevent download hangs.
-*   **Immediate Next Step**: Run `sudo ./bin/install.sh` to verify that mirror ranking executes successfully and proceeds to the installer menu.
+*   **Last Milestone**: Executed and closed Wave 004. Removed `yazi` and `htop` from the developer tools stack package list (`dev-tools.sh`) and updated `README.md` to match user preference.
+*   **Immediate Next Step**: Run `sudo ./bin/install.sh` and select `🛠️ [5] Developer Core` to test the updated, tailored developer package list.
 
 ---
 

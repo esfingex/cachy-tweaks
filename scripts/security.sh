@@ -219,22 +219,28 @@ _detect_aur_helper() {
 
 # 6. Portmaster Privacy Firewall (App-level network monitor & blocker)
 log_info "Checking Safing Portmaster installation status..."
-if ! pacman -Qi portmaster-bin &>/dev/null && ! pacman -Qi portmaster-stub-bin &>/dev/null && ! command -v portmaster-start &>/dev/null; then
-    log_info "Safing Portmaster is not installed."
 
-    if [ -n "${SUDO_USER:-}" ]; then
-        log_info "Cloning and building portmaster-bin from AUR as user '${SUDO_USER}'..."
-        BUILD_DIR="/tmp/portmaster_build"
-        rm -rf "$BUILD_DIR"
-        mkdir -p "$BUILD_DIR"
-        chown "$SUDO_USER":"$SUDO_USER" "$BUILD_DIR"
+if [ -z "${SUDO_USER:-}" ]; then
+    log_warn "SUDO_USER not available. Skipping Portmaster setup."
+else
+    AUR_HELPER=$(_detect_aur_helper)
 
-        sudo -u "$SUDO_USER" git clone https://aur.archlinux.org/portmaster-bin.git "$BUILD_DIR"
+    if ! pacman -Qi portmaster-bin &>/dev/null && ! pacman -Qi portmaster-stub-bin &>/dev/null && ! command -v portmaster-start &>/dev/null; then
+        log_info "Safing Portmaster is not installed."
 
-        if _portmaster_build "$BUILD_DIR"; then
-            log_success "Safing Portmaster compiled and installed successfully!"
+        if [ -n "$AUR_HELPER" ]; then
+            # yay/paru resuelve dependencias AUR transitivas automaticamente
+            # (libsoup, libappindicator-gtk3, etc.) sin intervencion manual
+            log_info "Installing portmaster-bin via ${AUR_HELPER}..."
+            if sudo -u "$SUDO_USER" "$AUR_HELPER" -S --noconfirm --needed portmaster-bin; then
+                log_success "Safing Portmaster installed successfully via ${AUR_HELPER}!"
+            else
+                log_error "Failed to install Portmaster via ${AUR_HELPER}."
+            fi
+        else
+            log_warn "No AUR helper (yay/paru) found. Cannot install Portmaster automatically."
+            log_warn "Install yay or paru first, then re-run this script."
         fi
-        rm -rf "$BUILD_DIR"
 
         if systemctl list-unit-files | grep -q "portmaster.service"; then
             log_info "Enabling and starting Portmaster service..."
@@ -243,47 +249,40 @@ if ! pacman -Qi portmaster-bin &>/dev/null && ! pacman -Qi portmaster-stub-bin &
         else
             log_warn "Portmaster service not registered. Please double check installation."
         fi
-    else
-        log_warn "SUDO_USER not available. Skipping automated Portmaster installation."
-    fi
-else
-    log_info "Safing Portmaster is already installed. Checking for updates..."
 
-    if [ -n "${SUDO_USER:-}" ]; then
+    else
+        log_info "Safing Portmaster is already installed. Checking for updates..."
+
         # Comparar version AUR vs instalada sin clonar el repo completo
         AUR_PKGVER=$(curl -fsSL "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=portmaster-bin" 2>/dev/null \
             | grep -m1 '^pkgver=' | cut -d'=' -f2 | tr -d "'\"")
-
         LOCAL_PKGVER=$(pacman -Q portmaster-bin 2>/dev/null | awk '{print $2}' | cut -d'-' -f1)
         [ -z "$LOCAL_PKGVER" ] && LOCAL_PKGVER=$(pacman -Q portmaster-stub-bin 2>/dev/null | awk '{print $2}' | cut -d'-' -f1)
 
         if [ -n "$AUR_PKGVER" ] && [ -n "$LOCAL_PKGVER" ] && [ "$AUR_PKGVER" != "$LOCAL_PKGVER" ]; then
-            log_info "Portmaster update available: ${LOCAL_PKGVER} -> ${AUR_PKGVER}. Rebuilding..."
-            BUILD_DIR="/tmp/portmaster_build"
-            rm -rf "$BUILD_DIR"
-            mkdir -p "$BUILD_DIR"
-            chown "$SUDO_USER":"$SUDO_USER" "$BUILD_DIR"
-
-            sudo -u "$SUDO_USER" git clone https://aur.archlinux.org/portmaster-bin.git "$BUILD_DIR"
-
-            if _portmaster_build "$BUILD_DIR" "$AUR_PKGVER"; then
-                log_success "Safing Portmaster updated to ${AUR_PKGVER} successfully!"
+            log_info "Portmaster update available: ${LOCAL_PKGVER} -> ${AUR_PKGVER}."
+            if [ -n "$AUR_HELPER" ]; then
+                log_info "Updating via ${AUR_HELPER}..."
+                if sudo -u "$SUDO_USER" "$AUR_HELPER" -S --noconfirm --needed portmaster-bin; then
+                    log_success "Safing Portmaster updated to ${AUR_PKGVER} successfully!"
+                else
+                    log_error "Update via ${AUR_HELPER} failed. Keeping current version."
+                fi
+            else
+                log_warn "No AUR helper found. Cannot update Portmaster. Install yay or paru."
             fi
-            rm -rf "$BUILD_DIR"
         else
             log_info "Portmaster is up to date (${LOCAL_PKGVER:-unknown})."
         fi
-    else
-        log_warn "SUDO_USER not available. Cannot check Portmaster version from AUR."
-    fi
 
-    # Asegurar que el servicio este corriendo sin importar el resultado del update
-    if systemctl is-active --quiet portmaster.service; then
-        log_info "Portmaster service is already running."
-    else
-        log_info "Enabling and starting Portmaster service..."
-        systemctl enable portmaster.service --now
-        log_success "Portmaster service started successfully."
+        # Asegurar que el servicio este corriendo sin importar el resultado del update
+        if systemctl is-active --quiet portmaster.service; then
+            log_info "Portmaster service is already running."
+        else
+            log_info "Enabling and starting Portmaster service..."
+            systemctl enable portmaster.service --now
+            log_success "Portmaster service started successfully."
+        fi
     fi
 fi
 

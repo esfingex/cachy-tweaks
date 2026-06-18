@@ -206,38 +206,66 @@ else
     log_info "Lynis is already available on your system."
 fi
 
+# Helper: pre-instala dependencias del PKGBUILD antes de compilar y luego instala el paquete.
+# Uso: _portmaster_build BUILD_DIR [version_para_log]
+_portmaster_build() {
+    local build_dir="$1"
+    local version_label="${2:-}"
+
+    # Leer las dependencias declaradas en el PKGBUILD como root (ya tenemos privilegios)
+    # Evaluamos solo la variable depends[] del PKGBUILD de forma segura (sin ejecutar el script completo)
+    local pkgbuild_deps
+    pkgbuild_deps=$(bash -c "
+        source '$build_dir/PKGBUILD' 2>/dev/null
+        echo \"\${depends[*]:-}\"
+    " 2>/dev/null || true)
+
+    if [ -n "$pkgbuild_deps" ]; then
+        log_info "Pre-installing Portmaster dependencies via pacman: ${pkgbuild_deps}"
+        # Convertir string a array y filtrar versiones (ej: libsoup>=2.70 -> libsoup)
+        local dep_names=()
+        for dep in $pkgbuild_deps; do
+            dep_names+=("$(echo "$dep" | sed 's/[>=<].*//')")
+        done
+        pacman -S --needed --noconfirm "${dep_names[@]}" 2>/dev/null \
+            || log_warn "Some Portmaster dependencies could not be installed from official repos."
+    fi
+
+    # Compilar como usuario no-root (makepkg rechaza root por seguridad)
+    if sudo -u "$SUDO_USER" bash -c "cd '$build_dir' && makepkg --noconfirm"; then
+        if ls "$build_dir"/*.pkg.tar.zst 1>/dev/null 2>&1; then
+            log_info "Installing Portmaster package${version_label:+ ($version_label)}..."
+            pacman -U --noconfirm "$build_dir"/*.pkg.tar.zst
+            return 0
+        else
+            log_error "Portmaster compiled package not found after build."
+            return 1
+        fi
+    else
+        log_error "makepkg failed for Portmaster. Check build logs in $build_dir."
+        return 1
+    fi
+}
+
 # 6. Portmaster Privacy Firewall (App-level network monitor & blocker)
 log_info "Checking Safing Portmaster installation status..."
 if ! pacman -Qi portmaster-bin &>/dev/null && ! pacman -Qi portmaster-stub-bin &>/dev/null && ! command -v portmaster-start &>/dev/null; then
     log_info "Safing Portmaster is not installed."
 
-    
     if [ -n "${SUDO_USER:-}" ]; then
-        log_info "Downloading and building portmaster-bin (v2) as user '${SUDO_USER}' to bypass sudo prompt..."
+        log_info "Cloning and building portmaster-bin from AUR as user '${SUDO_USER}'..."
         BUILD_DIR="/tmp/portmaster_build"
         rm -rf "$BUILD_DIR"
         mkdir -p "$BUILD_DIR"
         chown "$SUDO_USER":"$SUDO_USER" "$BUILD_DIR"
-        
-        # Clone the AUR repository safely as non-root (portmaster-bin targets modern Portmaster v2)
+
         sudo -u "$SUDO_USER" git clone https://aur.archlinux.org/portmaster-bin.git "$BUILD_DIR"
-        
-        # Compile the package as non-root (makepkg compiles without requiring root elevation)
-        if sudo -u "$SUDO_USER" bash -c "cd $BUILD_DIR && makepkg -d --noconfirm"; then
-            # Install the compiled package as root (pacman -U) - zero prompts!
-            if ls "$BUILD_DIR"/*.pkg.tar.zst 1>/dev/null 2>&1; then
-                log_info "Installing compiled Portmaster package as root..."
-                pacman -U --noconfirm "$BUILD_DIR"/*.pkg.tar.zst
-                log_success "Safing Portmaster compiled and installed successfully!"
-            else
-                log_error "Portmaster compiled package not found."
-            fi
-        else
-            log_error "makepkg compilation failed for portmaster-bin."
+
+        if _portmaster_build "$BUILD_DIR"; then
+            log_success "Safing Portmaster compiled and installed successfully!"
         fi
         rm -rf "$BUILD_DIR"
 
-        
         if systemctl list-unit-files | grep -q "portmaster.service"; then
             log_info "Enabling and starting Portmaster service..."
             systemctl enable portmaster.service --now
@@ -246,24 +274,21 @@ if ! pacman -Qi portmaster-bin &>/dev/null && ! pacman -Qi portmaster-stub-bin &
             log_warn "Portmaster service not registered. Please double check installation."
         fi
     else
-        log_warn "Original non-root user (SUDO_USER) is not available. Skipping automated Portmaster compilation."
+        log_warn "SUDO_USER not available. Skipping automated Portmaster installation."
     fi
 else
     log_info "Safing Portmaster is already installed. Checking for updates..."
 
     if [ -n "${SUDO_USER:-}" ]; then
-        # Fetch latest pkgver from AUR PKGBUILD (lightweight curl, no full clone needed)
+        # Comparar version AUR vs instalada sin clonar el repo completo
         AUR_PKGVER=$(curl -fsSL "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=portmaster-bin" 2>/dev/null \
             | grep -m1 '^pkgver=' | cut -d'=' -f2 | tr -d "'\"")
 
-        # Get locally installed version from pacman
         LOCAL_PKGVER=$(pacman -Q portmaster-bin 2>/dev/null | awk '{print $2}' | cut -d'-' -f1)
-        if [ -z "$LOCAL_PKGVER" ]; then
-            LOCAL_PKGVER=$(pacman -Q portmaster-stub-bin 2>/dev/null | awk '{print $2}' | cut -d'-' -f1)
-        fi
+        [ -z "$LOCAL_PKGVER" ] && LOCAL_PKGVER=$(pacman -Q portmaster-stub-bin 2>/dev/null | awk '{print $2}' | cut -d'-' -f1)
 
         if [ -n "$AUR_PKGVER" ] && [ -n "$LOCAL_PKGVER" ] && [ "$AUR_PKGVER" != "$LOCAL_PKGVER" ]; then
-            log_info "Portmaster update available: ${LOCAL_PKGVER} -> ${AUR_PKGVER}. Rebuilding from AUR..."
+            log_info "Portmaster update available: ${LOCAL_PKGVER} -> ${AUR_PKGVER}. Rebuilding..."
             BUILD_DIR="/tmp/portmaster_build"
             rm -rf "$BUILD_DIR"
             mkdir -p "$BUILD_DIR"
@@ -271,26 +296,18 @@ else
 
             sudo -u "$SUDO_USER" git clone https://aur.archlinux.org/portmaster-bin.git "$BUILD_DIR"
 
-            if sudo -u "$SUDO_USER" bash -c "cd $BUILD_DIR && makepkg -d --noconfirm"; then
-                if ls "$BUILD_DIR"/*.pkg.tar.zst 1>/dev/null 2>&1; then
-                    log_info "Installing updated Portmaster package..."
-                    pacman -U --noconfirm "$BUILD_DIR"/*.pkg.tar.zst
-                    log_success "Safing Portmaster updated to ${AUR_PKGVER} successfully!"
-                else
-                    log_error "Updated Portmaster package not found after build."
-                fi
-            else
-                log_error "makepkg failed during Portmaster update. Keeping current version."
+            if _portmaster_build "$BUILD_DIR" "$AUR_PKGVER"; then
+                log_success "Safing Portmaster updated to ${AUR_PKGVER} successfully!"
             fi
             rm -rf "$BUILD_DIR"
         else
-            log_info "Portmaster is up to date (${LOCAL_PKGVER})."
+            log_info "Portmaster is up to date (${LOCAL_PKGVER:-unknown})."
         fi
     else
         log_warn "SUDO_USER not available. Cannot check Portmaster version from AUR."
     fi
 
-    # Ensure service is running regardless of update outcome
+    # Asegurar que el servicio este corriendo sin importar el resultado del update
     if systemctl is-active --quiet portmaster.service; then
         log_info "Portmaster service is already running."
     else

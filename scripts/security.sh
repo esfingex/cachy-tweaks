@@ -206,44 +206,14 @@ else
     log_info "Lynis is already available on your system."
 fi
 
-# Helper: pre-instala dependencias del PKGBUILD antes de compilar y luego instala el paquete.
-# Uso: _portmaster_build BUILD_DIR [version_para_log]
-_portmaster_build() {
-    local build_dir="$1"
-    local version_label="${2:-}"
-
-    # Leer las dependencias declaradas en el PKGBUILD como root (ya tenemos privilegios)
-    # Evaluamos solo la variable depends[] del PKGBUILD de forma segura (sin ejecutar el script completo)
-    local pkgbuild_deps
-    pkgbuild_deps=$(bash -c "
-        source '$build_dir/PKGBUILD' 2>/dev/null
-        echo \"\${depends[*]:-}\"
-    " 2>/dev/null || true)
-
-    if [ -n "$pkgbuild_deps" ]; then
-        log_info "Pre-installing Portmaster dependencies via pacman: ${pkgbuild_deps}"
-        # Convertir string a array y filtrar versiones (ej: libsoup>=2.70 -> libsoup)
-        local dep_names=()
-        for dep in $pkgbuild_deps; do
-            dep_names+=("$(echo "$dep" | sed 's/[>=<].*//')")
-        done
-        pacman -S --needed --noconfirm "${dep_names[@]}" 2>/dev/null \
-            || log_warn "Some Portmaster dependencies could not be installed from official repos."
-    fi
-
-    # Compilar como usuario no-root (makepkg rechaza root por seguridad)
-    if sudo -u "$SUDO_USER" bash -c "cd '$build_dir' && makepkg --noconfirm"; then
-        if ls "$build_dir"/*.pkg.tar.zst 1>/dev/null 2>&1; then
-            log_info "Installing Portmaster package${version_label:+ ($version_label)}..."
-            pacman -U --noconfirm "$build_dir"/*.pkg.tar.zst
-            return 0
-        else
-            log_error "Portmaster compiled package not found after build."
-            return 1
-        fi
+# Helper: detecta el AUR helper disponible para el usuario actual (yay > paru > ninguno)
+_detect_aur_helper() {
+    if sudo -u "$SUDO_USER" command -v yay &>/dev/null; then
+        echo "yay"
+    elif sudo -u "$SUDO_USER" command -v paru &>/dev/null; then
+        echo "paru"
     else
-        log_error "makepkg failed for Portmaster. Check build logs in $build_dir."
-        return 1
+        echo ""
     fi
 }
 

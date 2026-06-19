@@ -254,6 +254,7 @@ else
             log_info "Installing portmaster-bin via ${AUR_HELPER}..."
             if sudo -u "$SUDO_USER" "$AUR_HELPER" -S --noconfirm --needed portmaster-bin; then
                 log_success "Safing Portmaster installed successfully via ${AUR_HELPER}!"
+                systemctl daemon-reload
             else
                 log_error "Failed to install Portmaster via ${AUR_HELPER}."
             fi

@@ -231,6 +231,20 @@ if [ -z "${SUDO_USER:-}" ]; then
 else
     AUR_HELPER=$(_detect_aur_helper)
 
+    # Sudoers temp drop-in to prevent timeouts during AUR helper pacman calls (due to timestamp_timeout=0)
+    TEMP_SUDOERS="/etc/sudoers.d/99-cachy-portmaster-temp"
+    TMP_SUDOERS_VAL="/tmp/99-cachy-portmaster-temp.tmp"
+    echo "$SUDO_USER ALL=(ALL) NOPASSWD: /usr/bin/pacman" > "$TMP_SUDOERS_VAL"
+
+    if visudo -cf "$TMP_SUDOERS_VAL" &>/dev/null; then
+        mv "$TMP_SUDOERS_VAL" "$TEMP_SUDOERS"
+        chmod 0440 "$TEMP_SUDOERS"
+        trap 'rm -f "$TEMP_SUDOERS"' EXIT INT TERM
+    else
+        log_warn "Failed to validate temporary sudoers configuration. Portmaster install may prompt for password."
+        rm -f "$TMP_SUDOERS_VAL"
+    fi
+
     if ! pacman -Qi portmaster-bin &>/dev/null && ! pacman -Qi portmaster-stub-bin &>/dev/null && ! command -v portmaster-start &>/dev/null; then
         log_info "Safing Portmaster is not installed."
 
@@ -290,6 +304,12 @@ else
             log_success "Portmaster service started successfully."
         fi
     fi
+
+    # Clean up temporary sudoers configuration
+    if [ -f "${TEMP_SUDOERS:-}" ]; then
+        rm -f "$TEMP_SUDOERS"
+    fi
+    trap - EXIT INT TERM
 fi
 
 

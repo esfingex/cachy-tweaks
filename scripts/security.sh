@@ -206,15 +206,21 @@ else
     log_info "Lynis is already available on your system."
 fi
 
-# Helper: detecta el AUR helper disponible para el usuario actual (yay > paru > ninguno)
+# Helper: detecta el AUR helper disponible (yay > paru > ninguno)
+# yay y paru se instalan en /usr/bin — se puede verificar directamente sin contexto de usuario
 _detect_aur_helper() {
-    if sudo -u "$SUDO_USER" command -v yay &>/dev/null; then
-        echo "yay"
-    elif sudo -u "$SUDO_USER" command -v paru &>/dev/null; then
-        echo "paru"
-    else
-        echo ""
-    fi
+    for helper in yay paru; do
+        if command -v "$helper" &>/dev/null; then
+            echo "$helper"; return
+        fi
+    done
+    # Fallback: buscar en el entorno de login del usuario original
+    for helper in yay paru; do
+        if sudo -u "$SUDO_USER" bash -lc "command -v $helper" &>/dev/null 2>&1; then
+            echo "$helper"; return
+        fi
+    done
+    echo ""
 }
 
 # 6. Portmaster Privacy Firewall (App-level network monitor & blocker)
